@@ -203,6 +203,7 @@ export type Database = {
       perfiles_joven: {
         Row: {
           created_at: string
+          disponible: boolean
           estado_revision: string
           fecha_revision: string | null
           formacion: string | null
@@ -210,11 +211,13 @@ export type Database = {
           id: string
           presentacion: string | null
           revisado_por: string | null
+          telefono: string | null
           updated_at: string
           usuario_id: string
         }
         Insert: {
           created_at?: string
+          disponible?: boolean
           estado_revision?: string
           fecha_revision?: string | null
           formacion?: string | null
@@ -222,11 +225,13 @@ export type Database = {
           id?: string
           presentacion?: string | null
           revisado_por?: string | null
+          telefono?: string | null
           updated_at?: string
           usuario_id: string
         }
         Update: {
           created_at?: string
+          disponible?: boolean
           estado_revision?: string
           fecha_revision?: string | null
           formacion?: string | null
@@ -234,6 +239,7 @@ export type Database = {
           id?: string
           presentacion?: string | null
           revisado_por?: string | null
+          telefono?: string | null
           updated_at?: string
           usuario_id?: string
         }
@@ -491,6 +497,37 @@ export type Database = {
     Functions: {
       auth_rol: { Args: never; Returns: string }
       auth_usuario_id: { Args: never; Returns: string }
+      buscar_directorio: {
+        Args: {
+          p_busqueda?: string
+          p_habilidad?: string
+          p_municipio?: string
+          p_solo_disponibles?: boolean
+        }
+        Returns: {
+          disponible: boolean
+          foto_url: string
+          habilidades: Json
+          municipio: string
+          nombre: string
+          usuario_id: string
+        }[]
+      }
+      obtener_perfil_publico: {
+        Args: { p_usuario_id: string }
+        Returns: {
+          disponible: boolean
+          estado_revision: string
+          formacion: string
+          foto_url: string
+          habilidades: Json
+          municipio: string
+          nombre: string
+          presentacion: string
+          telefono: string
+          usuario_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

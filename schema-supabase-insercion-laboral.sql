@@ -69,8 +69,12 @@ create trigger trg_validar_autorizacion_menor
   for each row execute function validar_autorizacion_menor();
 
 -- Funciones helper para RLS
+-- SECURITY DEFINER es imprescindible: estas funciones se usan dentro de las
+-- policies de `usuarios`; si leyeran `usuarios` con RLS, la policy volvería a
+-- invocarlas y habría recursión infinita. Como definer, leen saltando RLS.
 create or replace function auth_usuario_id()
 returns uuid
+security definer
 set search_path = public, pg_temp
 as $$
   select id from usuarios where auth_id = auth.uid();
@@ -78,6 +82,7 @@ $$ language sql stable;
 
 create or replace function auth_rol()
 returns text
+security definer
 set search_path = public, pg_temp
 as $$
   select rol from usuarios where auth_id = auth.uid();
@@ -124,6 +129,8 @@ create table perfiles_joven (
   formacion text,
   presentacion text,
   foto_url text,
+  telefono text,                          -- WhatsApp para contacto wa.me
+  disponible boolean not null default true, -- disponible para pop-ups
   estado_revision text not null default 'borrador'
     check (estado_revision in ('borrador','en_revision','aprobado','rechazado')),
   revisado_por uuid references usuarios(id),
@@ -519,6 +526,141 @@ $$ language plpgsql;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function handle_new_user();
+
+-- handle_new_user es función de trigger; no debe ser invocable como RPC.
+revoke execute on function handle_new_user() from anon, authenticated, public;
+
+-- ============================================================================
+-- 12. STORAGE: FOTOS DE PERFIL (bucket público con RLS por dueño)
+-- ============================================================================
+
+insert into storage.buckets (id, name, public)
+values ('fotos-perfil', 'fotos-perfil', true)
+on conflict (id) do nothing;
+
+-- Bucket público: las fotos se sirven por URL pública sin policy SELECT (no se
+-- agrega policy de lectura para evitar que se pueda listar todo el bucket).
+-- Escritura solo dentro de la carpeta del propio usuario (= su auth.uid()).
+create policy "fotos_perfil_sube_propio" on storage.objects
+  for insert with check (
+    bucket_id = 'fotos-perfil' and (storage.foldername(name))[1] = auth.uid()::text
+  );
+create policy "fotos_perfil_actualiza_propio" on storage.objects
+  for update using (
+    bucket_id = 'fotos-perfil' and (storage.foldername(name))[1] = auth.uid()::text
+  );
+create policy "fotos_perfil_borra_propio" on storage.objects
+  for delete using (
+    bucket_id = 'fotos-perfil' and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- ============================================================================
+-- 13. FUNCIONES DEL DIRECTORIO (empresario) — SECURITY DEFINER acotadas
+-- ============================================================================
+-- El directorio y la ficha pública muestran nombre y municipio del joven, que
+-- viven en `usuarios` (RLS restringe a propio/staff). En vez de abrir esa RLS,
+-- estas funciones exponen SOLO columnas públicas de perfiles APROBADOS y exigen
+-- estar autenticado. Ejecutables solo por `authenticated`.
+
+create or replace function buscar_directorio(
+  p_busqueda text default null,
+  p_habilidad uuid default null,
+  p_municipio uuid default null,
+  p_solo_disponibles boolean default false
+)
+returns table (
+  usuario_id uuid,
+  nombre text,
+  municipio text,
+  foto_url text,
+  disponible boolean,
+  habilidades jsonb
+)
+security definer
+set search_path = public, pg_temp
+language sql
+stable
+as $$
+  select
+    u.id,
+    u.nombre,
+    m.nombre,
+    pj.foto_url,
+    pj.disponible,
+    coalesce((
+      select jsonb_agg(jsonb_build_object('id', h.id, 'nombre', h.nombre, 'categoria', h.categoria) order by h.nombre)
+      from joven_habilidades jh join habilidades h on h.id = jh.habilidad_id
+      where jh.joven_id = pj.id
+    ), '[]'::jsonb)
+  from perfiles_joven pj
+  join usuarios u on u.id = pj.usuario_id
+  left join municipios m on m.id = u.municipio_id
+  where (select auth.uid()) is not null
+    and pj.estado_revision = 'aprobado'
+    and (p_municipio is null or u.municipio_id = p_municipio)
+    and (not p_solo_disponibles or pj.disponible = true)
+    and (p_habilidad is null or exists (
+      select 1 from joven_habilidades jh where jh.joven_id = pj.id and jh.habilidad_id = p_habilidad))
+    and (
+      p_busqueda is null or p_busqueda = '' or
+      u.nombre ilike '%' || p_busqueda || '%' or
+      exists (
+        select 1 from joven_habilidades jh join habilidades h on h.id = jh.habilidad_id
+        where jh.joven_id = pj.id and h.nombre ilike '%' || p_busqueda || '%')
+    )
+  order by pj.disponible desc, u.nombre;
+$$;
+
+revoke execute on function buscar_directorio(text, uuid, uuid, boolean) from anon, public;
+grant execute on function buscar_directorio(text, uuid, uuid, boolean) to authenticated;
+
+create or replace function obtener_perfil_publico(p_usuario_id uuid)
+returns table (
+  usuario_id uuid,
+  nombre text,
+  municipio text,
+  presentacion text,
+  formacion text,
+  foto_url text,
+  telefono text,
+  disponible boolean,
+  estado_revision text,
+  habilidades jsonb
+)
+security definer
+set search_path = public, pg_temp
+language sql
+stable
+as $$
+  select
+    u.id,
+    u.nombre,
+    m.nombre,
+    pj.presentacion,
+    pj.formacion,
+    pj.foto_url,
+    pj.telefono,
+    pj.disponible,
+    pj.estado_revision,
+    coalesce((
+      select jsonb_agg(jsonb_build_object('id', h.id, 'nombre', h.nombre, 'categoria', h.categoria) order by h.nombre)
+      from joven_habilidades jh join habilidades h on h.id = jh.habilidad_id
+      where jh.joven_id = pj.id
+    ), '[]'::jsonb)
+  from perfiles_joven pj
+  join usuarios u on u.id = pj.usuario_id
+  left join municipios m on m.id = u.municipio_id
+  where (select auth.uid()) is not null
+    and u.id = p_usuario_id
+    and (
+      pj.estado_revision = 'aprobado'
+      or pj.usuario_id = auth_usuario_id()
+      or auth_rol() in ('lider', 'admin')
+    );
+$$;
+
+revoke execute on function obtener_perfil_publico(uuid) from anon, public;
+grant execute on function obtener_perfil_publico(uuid) to authenticated;
 
 -- ============================================================================
 -- FIN DEL ESQUEMA

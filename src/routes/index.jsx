@@ -10,6 +10,11 @@ import { Login } from '../pages/Login.jsx'
 import { ConfirmarCorreo } from '../pages/ConfirmarCorreo.jsx'
 import { Onboarding } from '../pages/Onboarding.jsx'
 import { Placeholder } from '../pages/Placeholder.jsx'
+import { JovenHome } from '../pages/joven/JovenHome.jsx'
+import { PerfilEditar } from '../pages/joven/PerfilEditar.jsx'
+import { Portafolio } from '../pages/joven/Portafolio.jsx'
+import { Directorio } from '../pages/empresario/Directorio.jsx'
+import { PerfilTalento } from '../pages/empresario/PerfilTalento.jsx'
 
 /**
  * Rutas. Fase 1: acceso (landing, registro, login, confirmación), onboarding y
@@ -71,7 +76,11 @@ export const router = createBrowserRouter([
         <AppLayout />
       </ProtectedRoute>
     ),
-    children: [{ index: true, element: <Placeholder titulo="Inicio · Joven" fase="Fase 2" /> }],
+    children: [
+      { index: true, element: <JovenHome /> },
+      { path: 'perfil', element: <PerfilEditar /> },
+      { path: 'portafolio', element: <Portafolio /> },
+    ],
   },
 
   // Área empresario
@@ -83,7 +92,8 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <Placeholder titulo="Inicio · Empresario" fase="Fase 2" /> },
+      { index: true, element: <Directorio /> },
+      { path: 'talento/:usuarioId', element: <PerfilTalento /> },
     ],
   },
 
