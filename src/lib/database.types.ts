@@ -429,6 +429,7 @@ export type Database = {
           id: string
           municipio_id: string | null
           nombre: string
+          onboarding_completo: boolean
           rol: string
         }
         Insert: {
@@ -444,6 +445,7 @@ export type Database = {
           id?: string
           municipio_id?: string | null
           nombre: string
+          onboarding_completo?: boolean
           rol: string
         }
         Update: {
@@ -459,6 +461,7 @@ export type Database = {
           id?: string
           municipio_id?: string | null
           nombre?: string
+          onboarding_completo?: boolean
           rol?: string
         }
         Relationships: [

@@ -47,6 +47,7 @@ create table usuarios (
   es_menor_edad boolean not null default false,
   autorizacion_acudiente boolean not null default false,
   fecha_autorizacion_acudiente timestamptz,
+  onboarding_completo boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -452,6 +453,72 @@ group by m.nombre;
 -- todas las filas, el dashboard funciona para ellos. Si más adelante se
 -- necesitan agregados que crucen datos que ni admin puede ver fila por fila,
 -- exponerlos vía una función security definer acotada.
+
+-- ============================================================================
+-- 11. CREACIÓN AUTOMÁTICA DEL PERFIL AL REGISTRARSE (integración con Auth)
+-- ============================================================================
+-- Cuando se registra un auth.users (supabase.auth.signUp), este trigger crea
+-- automáticamente su fila en public.usuarios (y en empresas si es empresario),
+-- leyendo los datos de raw_user_meta_data que envía el frontend. Es
+-- SECURITY DEFINER para insertar saltando RLS; el trigger validar_autorizacion_menor
+-- se sigue aplicando y bloquea el registro de menores sin autorización de acudiente.
+
+create or replace function handle_new_user()
+returns trigger
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_usuario_id uuid;
+  v_rol text;
+  v_meta jsonb;
+begin
+  v_meta := coalesce(new.raw_user_meta_data, '{}'::jsonb);
+  v_rol := v_meta->>'rol';
+
+  -- Sin rol en el metadata (p. ej. usuario creado desde el panel de Supabase):
+  -- no se crea perfil automáticamente.
+  if v_rol is null then
+    return new;
+  end if;
+
+  insert into public.usuarios (
+    auth_id, rol, nombre, email, municipio_id,
+    autorizacion_datos, fecha_autorizacion_datos,
+    es_menor_edad, autorizacion_acudiente, fecha_autorizacion_acudiente
+  ) values (
+    new.id,
+    v_rol,
+    coalesce(v_meta->>'nombre', ''),
+    new.email,
+    nullif(v_meta->>'municipio_id', '')::uuid,
+    coalesce((v_meta->>'autorizacion_datos')::boolean, false),
+    case when (v_meta->>'autorizacion_datos')::boolean then now() else null end,
+    coalesce((v_meta->>'es_menor_edad')::boolean, false),
+    coalesce((v_meta->>'autorizacion_acudiente')::boolean, false),
+    case when (v_meta->>'autorizacion_acudiente')::boolean then now() else null end
+  )
+  on conflict (auth_id) do nothing
+  returning id into v_usuario_id;
+
+  if v_rol = 'empresario' and v_usuario_id is not null then
+    insert into public.empresas (usuario_id, nombre_empresa, nit, sector, municipio_id)
+    values (
+      v_usuario_id,
+      coalesce(v_meta->>'nombre_empresa', ''),
+      nullif(v_meta->>'nit', ''),
+      nullif(v_meta->>'sector', ''),
+      nullif(v_meta->>'municipio_id', '')::uuid
+    );
+  end if;
+
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function handle_new_user();
 
 -- ============================================================================
 -- FIN DEL ESQUEMA

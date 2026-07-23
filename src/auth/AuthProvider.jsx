@@ -13,12 +13,18 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [usuario, setUsuario] = useState(null)
   const [loading, setLoading] = useState(true)
+  // true mientras se resuelve la fila de `usuarios` de la sesión actual.
+  // Evita redirecciones erróneas justo tras iniciar sesión, cuando ya hay
+  // sesión pero todavía no se cargó el usuario.
+  const [cargandoUsuario, setCargandoUsuario] = useState(true)
 
   const cargarUsuario = useCallback(async (authUser) => {
     if (!authUser) {
       setUsuario(null)
+      setCargandoUsuario(false)
       return
     }
+    setCargandoUsuario(true)
     const { data, error } = await supabase
       .from('usuarios')
       .select('*')
@@ -27,9 +33,10 @@ export function AuthProvider({ children }) {
     if (error) {
       console.error('Error cargando la fila de usuario:', error.message)
       setUsuario(null)
-      return
+    } else {
+      setUsuario(data)
     }
-    setUsuario(data)
+    setCargandoUsuario(false)
   }, [])
 
   useEffect(() => {
@@ -66,6 +73,9 @@ export function AuthProvider({ children }) {
     usuario,
     rol: usuario?.rol ?? null,
     loading,
+    cargandoUsuario,
+    // listo: hay una respuesta definitiva de sesión + usuario.
+    listo: !loading && !cargandoUsuario,
     signOut,
     refrescarUsuario: () => cargarUsuario(session?.user ?? null),
   }
