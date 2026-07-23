@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   Fuentes self-hosted (bajo consumo de datos — sin CDN de Google)
+   Los archivos .woff2 viven en /public/fonts/. Ver src/styles/fonts.css.
+   ============================================================================ */
+@import "./styles/fonts.css";
+
+/* ============================================================================
+   Tokens de diseño — paleta y tipografías del mockup (Flujo Joven.dc.html)
+   Tailwind v4 genera utilidades a partir de estas variables:
+   bg-fondo, text-tinta, bg-joven, text-empresario, font-display, etc.
+   ============================================================================ */
+@theme {
+  /* Paleta institucional */
+  --color-fondo: #e8e7dc;
+  --color-tinta: #171810;
+  --color-joven: #e6007e;      /* rosa · rol joven */
+  --color-empresario: #00aeb9; /* turquesa · rol empresario */
+  --color-naranja: #f39200;    /* naranja · líder / acento */
+  --color-lima: #c6db2e;       /* verde lima · admin / acento */
+
+  /* Superficies auxiliares tomadas del mockup */
+  --color-superficie: #fbfaf3;
+  --color-borde: #ecebdd;
+  --color-tenue: #75786a;
+
+  /* Tipografías */
+  --font-display: "Fredoka", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Nunito Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ============================================================================
+   Base
+   ============================================================================ */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-tinta);
+  background-color: var(--color-fondo);
+  /* Patrón de puntos del mockup */
+  background-image: radial-gradient(#d6d5c8 1.3px, transparent 1.3px);
+  background-size: 26px 26px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::placeholder {
+  color: #a7a995;
+}
