@@ -293,34 +293,49 @@ export type Database = {
       popups: {
         Row: {
           created_at: string
+          cupos: number | null
           descripcion: string
           empresa_id: string
           estado: string
           fecha_cierre: string | null
+          fecha_fin: string | null
+          fecha_inicio: string | null
           fecha_publicacion: string | null
           id: string
+          municipio_id: string | null
+          pago_estimado: string | null
           revisado_por: string | null
           titulo: string
         }
         Insert: {
           created_at?: string
+          cupos?: number | null
           descripcion: string
           empresa_id: string
           estado?: string
           fecha_cierre?: string | null
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
           fecha_publicacion?: string | null
           id?: string
+          municipio_id?: string | null
+          pago_estimado?: string | null
           revisado_por?: string | null
           titulo: string
         }
         Update: {
           created_at?: string
+          cupos?: number | null
           descripcion?: string
           empresa_id?: string
           estado?: string
           fecha_cierre?: string | null
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
           fecha_publicacion?: string | null
           id?: string
+          municipio_id?: string | null
+          pago_estimado?: string | null
           revisado_por?: string | null
           titulo?: string
         }
@@ -510,6 +525,20 @@ export type Database = {
           habilidades: Json
           municipio: string
           nombre: string
+          usuario_id: string
+        }[]
+      }
+      listar_postulaciones_popup: {
+        Args: { p_popup_id: string }
+        Returns: {
+          estado: string
+          fecha: string
+          foto_url: string
+          habilidades: Json
+          municipio: string
+          nombre: string
+          postulacion_id: string
+          telefono: string
           usuario_id: string
         }[]
       }

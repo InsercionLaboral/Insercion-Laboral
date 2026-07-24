@@ -13,8 +13,13 @@ import { Placeholder } from '../pages/Placeholder.jsx'
 import { JovenHome } from '../pages/joven/JovenHome.jsx'
 import { PerfilEditar } from '../pages/joven/PerfilEditar.jsx'
 import { Portafolio } from '../pages/joven/Portafolio.jsx'
+import { PopupsJoven } from '../pages/joven/PopupsJoven.jsx'
+import { PopupDetalleJoven } from '../pages/joven/PopupDetalleJoven.jsx'
 import { Directorio } from '../pages/empresario/Directorio.jsx'
 import { PerfilTalento } from '../pages/empresario/PerfilTalento.jsx'
+import { MisPopups } from '../pages/empresario/MisPopups.jsx'
+import { NuevoPopup } from '../pages/empresario/NuevoPopup.jsx'
+import { PopupDetalle } from '../pages/empresario/PopupDetalle.jsx'
 
 /**
  * Rutas. Fase 1: acceso (landing, registro, login, confirmación), onboarding y
@@ -80,6 +85,8 @@ export const router = createBrowserRouter([
       { index: true, element: <JovenHome /> },
       { path: 'perfil', element: <PerfilEditar /> },
       { path: 'portafolio', element: <Portafolio /> },
+      { path: 'popups', element: <PopupsJoven /> },
+      { path: 'popups/:popupId', element: <PopupDetalleJoven /> },
     ],
   },
 
@@ -94,6 +101,9 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Directorio /> },
       { path: 'talento/:usuarioId', element: <PerfilTalento /> },
+      { path: 'popups', element: <MisPopups /> },
+      { path: 'popups/nuevo', element: <NuevoPopup /> },
+      { path: 'popups/:popupId', element: <PopupDetalle /> },
     ],
   },
 

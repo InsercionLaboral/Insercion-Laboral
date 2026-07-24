@@ -5,11 +5,13 @@ import { ROLES } from '../constants/roles.js'
 const NAV_POR_ROL = {
   [ROLES.JOVEN]: [
     { to: '/joven', fin: true, icono: '🏠', texto: 'Inicio' },
+    { to: '/joven/popups', icono: '⚡', texto: 'Pop-ups' },
     { to: '/joven/perfil', icono: '📝', texto: 'Mi perfil' },
     { to: '/joven/portafolio', icono: '👀', texto: 'Portafolio' },
   ],
   [ROLES.EMPRESARIO]: [
     { to: '/empresario', fin: true, icono: '🔎', texto: 'Directorio' },
+    { to: '/empresario/popups', icono: '⚡', texto: 'Mis pop-ups' },
   ],
   [ROLES.LIDER]: [{ to: '/lider', fin: true, icono: '✅', texto: 'Aprobaciones' }],
   [ROLES.ADMIN]: [{ to: '/admin', fin: true, icono: '📊', texto: 'Dashboard' }],

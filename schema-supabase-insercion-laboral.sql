@@ -222,11 +222,16 @@ create table popups (
   empresa_id uuid not null references empresas(id) on delete cascade,
   titulo text not null,
   descripcion text not null,
+  municipio_id uuid references municipios(id),
+  cupos integer,
+  pago_estimado text,
+  fecha_inicio date,                      -- inicio del trabajo
+  fecha_fin date,                         -- fin del trabajo
   estado text not null default 'pendiente'
     check (estado in ('pendiente','aprobado','rechazado','cerrado')),
   revisado_por uuid references usuarios(id),
   fecha_publicacion timestamptz,
-  fecha_cierre timestamptz,
+  fecha_cierre timestamptz,               -- cierre de postulaciones
   created_at timestamptz not null default now()
 );
 
@@ -431,6 +436,7 @@ create index idx_postulaciones_popup on postulaciones(popup_id);
 create index idx_postulaciones_joven on postulaciones(joven_id);
 create index idx_empresas_municipio on empresas(municipio_id);
 create index idx_usuarios_municipio on usuarios(municipio_id);
+create index idx_popups_municipio on popups(municipio_id);
 
 -- ============================================================================
 -- 10. VISTA PARA DASHBOARD KPI (base de partida — ajustar según necesidad)
@@ -661,6 +667,60 @@ $$;
 
 revoke execute on function obtener_perfil_publico(uuid) from anon, public;
 grant execute on function obtener_perfil_publico(uuid) to authenticated;
+
+-- Postulantes de un pop-up (vista del empresario). Mismo criterio: el nombre y
+-- municipio del joven viven en `usuarios`, así que se exponen aquí solo columnas
+-- públicas y solo al dueño del pop-up o a staff.
+create or replace function listar_postulaciones_popup(p_popup_id uuid)
+returns table (
+  postulacion_id uuid,
+  estado text,
+  fecha timestamptz,
+  usuario_id uuid,
+  nombre text,
+  municipio text,
+  foto_url text,
+  telefono text,
+  habilidades jsonb
+)
+security definer
+set search_path = public, pg_temp
+language sql
+stable
+as $$
+  select
+    po.id,
+    po.estado,
+    po.created_at,
+    u.id,
+    u.nombre,
+    m.nombre,
+    pj.foto_url,
+    pj.telefono,
+    coalesce((
+      select jsonb_agg(jsonb_build_object('id', h.id, 'nombre', h.nombre) order by h.nombre)
+      from joven_habilidades jh join habilidades h on h.id = jh.habilidad_id
+      where jh.joven_id = pj.id
+    ), '[]'::jsonb)
+  from postulaciones po
+  join perfiles_joven pj on pj.id = po.joven_id
+  join usuarios u on u.id = pj.usuario_id
+  left join municipios m on m.id = u.municipio_id
+  where (select auth.uid()) is not null
+    and po.popup_id = p_popup_id
+    and (
+      exists (
+        select 1 from popups pu
+        join empresas e on e.id = pu.empresa_id
+        where pu.id = p_popup_id and e.usuario_id = auth_usuario_id()
+      )
+      or auth_rol() in ('lider', 'admin')
+    )
+  order by po.created_at desc;
+$$;
+
+revoke execute on function listar_postulaciones_popup(uuid) from anon, public;
+grant execute on function listar_postulaciones_popup(uuid) to authenticated;
 
 -- ============================================================================
 -- FIN DEL ESQUEMA
