@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './AuthProvider.jsx'
-import { HOME_POR_ROL } from '../constants/roles.js'
+import { HOME_POR_ROL, ROLES_CON_ONBOARDING } from '../constants/roles.js'
 import { Cargando } from '../components/Cargando.jsx'
 
 /**
@@ -25,8 +25,12 @@ export function ProtectedRoute({ roles, requiereOnboarding = true, children }) {
     return <Navigate to="/completar-registro" replace />
   }
 
-  // Falta completar el onboarding inicial.
-  if (requiereOnboarding && !usuario.onboarding_completo) {
+  // Falta completar el onboarding inicial (solo joven/empresario).
+  if (
+    requiereOnboarding &&
+    ROLES_CON_ONBOARDING.includes(rol) &&
+    !usuario.onboarding_completo
+  ) {
     return <Navigate to="/onboarding" replace />
   }
 

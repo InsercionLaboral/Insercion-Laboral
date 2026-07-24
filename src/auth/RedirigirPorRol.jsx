@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from './AuthProvider.jsx'
-import { HOME_POR_ROL } from '../constants/roles.js'
+import { HOME_POR_ROL, ROLES_CON_ONBOARDING } from '../constants/roles.js'
 import { Cargando } from '../components/Cargando.jsx'
 
 /**
@@ -13,6 +13,7 @@ export function RedirigirPorRol() {
   if (!listo) return <Cargando />
   if (!session) return <Navigate to="/login" replace />
   if (!usuario) return <Navigate to="/completar-registro" replace />
-  if (!usuario.onboarding_completo) return <Navigate to="/onboarding" replace />
+  if (ROLES_CON_ONBOARDING.includes(usuario.rol) && !usuario.onboarding_completo)
+    return <Navigate to="/onboarding" replace />
   return <Navigate to={HOME_POR_ROL[usuario.rol] ?? '/'} replace />
 }

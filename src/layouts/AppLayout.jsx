@@ -13,7 +13,10 @@ const NAV_POR_ROL = {
     { to: '/empresario', fin: true, icono: '🔎', texto: 'Directorio' },
     { to: '/empresario/popups', icono: '⚡', texto: 'Mis pop-ups' },
   ],
-  [ROLES.LIDER]: [{ to: '/lider', fin: true, icono: '✅', texto: 'Aprobaciones' }],
+  [ROLES.LIDER]: [
+    { to: '/lider', fin: true, icono: '✅', texto: 'Aprobaciones' },
+    { to: '/lider/auditoria', icono: '🗂️', texto: 'Historial' },
+  ],
   [ROLES.ADMIN]: [{ to: '/admin', fin: true, icono: '📊', texto: 'Dashboard' }],
 }
 

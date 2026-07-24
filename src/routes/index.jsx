@@ -20,6 +20,10 @@ import { PerfilTalento } from '../pages/empresario/PerfilTalento.jsx'
 import { MisPopups } from '../pages/empresario/MisPopups.jsx'
 import { NuevoPopup } from '../pages/empresario/NuevoPopup.jsx'
 import { PopupDetalle } from '../pages/empresario/PopupDetalle.jsx'
+import { Aprobaciones } from '../pages/lider/Aprobaciones.jsx'
+import { RevisarPerfil } from '../pages/lider/RevisarPerfil.jsx'
+import { RevisarPopup } from '../pages/lider/RevisarPopup.jsx'
+import { Auditoria } from '../pages/lider/Auditoria.jsx'
 
 /**
  * Rutas. Fase 1: acceso (landing, registro, login, confirmación), onboarding y
@@ -116,7 +120,10 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <Placeholder titulo="Panel de aprobación · Líder" fase="Fase 4" /> },
+      { index: true, element: <Aprobaciones /> },
+      { path: 'perfil/:usuarioId', element: <RevisarPerfil /> },
+      { path: 'popup/:popupId', element: <RevisarPopup /> },
+      { path: 'auditoria', element: <Auditoria /> },
     ],
   },
 
