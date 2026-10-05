@@ -42,9 +42,11 @@ export function Login() {
       <form onSubmit={enviar} className="flex flex-1 flex-col justify-center py-6">
         <div className="mx-auto w-full max-w-sm">
           <div className="mb-8 md:hidden">
-            <div className="inline-block rounded-2xl bg-white p-3 shadow-lg">
-              <img src="/assets/logo.jpg" alt="Inserción Laboral" className="h-16 rounded-lg" />
-            </div>
+            <img
+              src="/assets/logo.jpg"
+              alt="Inserción Laboral"
+              className="h-16 rounded-2xl shadow-lg shadow-black/10"
+            />
           </div>
 
           <h1 className="font-display text-[28px] font-bold leading-tight text-tinta">

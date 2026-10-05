@@ -19,9 +19,11 @@ export function AuthShell({ acento = 'joven', children }) {
       >
         <div className="pointer-events-none absolute -right-16 top-24 size-64 rounded-full bg-white/10" />
         <div className="pointer-events-none absolute -left-10 bottom-24 size-52 rounded-full bg-white/10" />
-        <div className="relative z-10 rounded-3xl bg-white/95 p-5 shadow-xl">
-          <img src="/assets/logo.jpg" alt="Inserción Laboral" className="w-56 rounded-xl" />
-        </div>
+        <img
+          src="/assets/logo.jpg"
+          alt="Inserción Laboral"
+          className="relative z-10 w-64 self-start rounded-3xl shadow-xl shadow-black/20 ring-4 ring-white/30"
+        />
         <div className="relative z-10">
           <h2 className="font-display text-3xl font-bold leading-tight text-white">
             Un enlace con las oportunidades

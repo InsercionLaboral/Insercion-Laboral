@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado actual del repositorio
 
-**Fase 0 completada** (cimientos técnicos). Ya existe la aplicación React + Vite en la raíz, con Tailwind, cliente Supabase, auth/roles y rutas protegidas. La base de datos del proyecto Supabase dedicado tiene el esquema, los catálogos y los 27 municipios aplicados. Las fases 1–7 (features por rol) están pendientes — ver [fases-implementacion-insercion-laboral.md](fases-implementacion-insercion-laboral.md).
+**Fases 0–4 completadas** (cimientos, registro con Habeas Data + onboarding, perfil del joven + directorio del empresario, pop-ups y postulaciones, panel de aprobación del líder). Pendientes: contrataciones y seguimiento, dashboard KPI + recursos, y lanzamiento (fases 5–7; hoy `/admin`, `/terminos` y `/privacidad` son `Placeholder`). La base de datos del proyecto Supabase dedicado tiene el esquema, los catálogos y los 27 municipios aplicados — ver [fases-implementacion-insercion-laboral.md](fases-implementacion-insercion-laboral.md).
 
 ### Comandos
 
@@ -14,7 +14,7 @@ Desde la raíz del proyecto:
 - `npm run dev` — servidor de desarrollo (Vite, http://localhost:5173).
 - `npm run build` — build de producción a `dist/`.
 - `npm run preview` — servir el build localmente.
-- `npm run lint` — ESLint sobre `src/`.
+- `npm run lint` — ESLint (`eslint .`).
 
 Requiere un `.env` (copiar de `.env.example`) con `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`. No hay tests configurados todavía — no inventes un comando de test.
 
@@ -22,10 +22,13 @@ Requiere un `.env` (copiar de `.env.example`) con `VITE_SUPABASE_URL` y `VITE_SU
 
 - `src/main.jsx` — entrada (RouterProvider + AuthProvider).
 - `src/index.css` — Tailwind v4 con los tokens de paleta/tipografías del mockup en `@theme` (genera `bg-fondo`, `text-tinta`, `bg-joven`, `font-display`, etc.); `src/styles/fonts.css` declara las fuentes self-hosted (`/public/fonts/*.woff2`, variables, subconjunto latino — sin CDN, por el requisito de bajo consumo).
-- `src/lib/supabase.js` — cliente Supabase (lee las env `VITE_*`). `src/lib/database.types.ts` — tipos generados del esquema (regenerar tras cambios en la BD; referencia aunque la app sea JSX).
+- `src/lib/supabase.js` — cliente Supabase (lee las env `VITE_*`). `src/lib/database.types.ts` — tipos generados del esquema (regenerar tras cambios en la BD; referencia aunque la app sea JSX). Nota: el código usa columnas como `telefono`, `cupos`, `pago_estimado`, `municipio_id` en popups, `updated_at` que pueden haberse añadido en migraciones posteriores al `.sql` base; ante duda, consulta la BD real (MCP, proyecto `ofcnxaxqqcpbahkwnljk`) y no solo el archivo.
 - `src/auth/AuthProvider.jsx` — expone `session`, `usuario` (fila de `public.usuarios` con el `rol`), `loading`, `signOut` vía `useAuth()`. `src/auth/ProtectedRoute.jsx` — protege por sesión y por rol (redirige al home del rol real si no coincide).
 - `src/constants/roles.js` — `ROLES` y `HOME_POR_ROL` (coinciden con el check `usuarios.rol`).
-- `src/routes/index.jsx` — esqueleto de rutas; las pantallas por rol son `Placeholder` hasta implementarse en su fase.
+- `src/routes/index.jsx` — todas las rutas en un solo `createBrowserRouter`: públicas envueltas en `SoloInvitados`, áreas `/joven`, `/empresario`, `/lider` (acepta lider y admin) y `/admin` envueltas en `ProtectedRoute roles={[...]}` + `AppLayout`. Lo no implementado usa `pages/Placeholder.jsx`. Páginas en `src/pages/<rol>/`.
+- `src/lib/*.js` — capa de acceso a datos (una función por consulta Supabase, sin lógica en las páginas): `aprobaciones.js`, `popups.js`, `perfil.js`, `auth.js`, `whatsapp.js` (enlaces `wa.me`), `imagen.js` (comprime a WebP en el navegador antes de subir a Storage), `edad.js`, `fechas.js`. Estos módulos normalizan los embeds anidados de PostgREST a objetos planos. Gotcha: `perfiles_joven` tiene dos FK hacia `usuarios` (`usuario_id`, `revisado_por`), así que los embeds deben nombrar la FK (`usuarios!perfiles_joven_usuario_id_fkey`).
+- `src/components/` (`ui/` = primitivas: Boton, Campo, Chip, etc.), `src/hooks/` (`useHabilidades`, `useMunicipios`), `src/layouts/` (`AppLayout`, `AuthShell`).
+- `vercel.json` — rewrite SPA a `/index.html`.
 - `public/assets/logo.jpg` — logo servido por Vite (copia del de la raíz).
 
 Contenido de planeación/diseño (insumos, no parte del build):
