@@ -18,6 +18,9 @@ export function Directorio() {
   const [resultados, setResultados] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
+  const [hayMas, setHayMas] = useState(false)
+  const [pagina, setPagina] = useState(0)
+  const [cargandoMas, setCargandoMas] = useState(false)
 
   const opcMunicipio = useMemo(
     () => municipios.map((m) => ({ value: m.id, label: m.nombre })),
@@ -32,9 +35,12 @@ export function Directorio() {
     let activo = true
     setCargando(true)
     const t = setTimeout(() => {
-      buscarDirectorio({ busqueda, habilidadId, municipioId, soloDisponibles })
-        .then((data) => {
-          if (activo) setResultados(data)
+      buscarDirectorio({ busqueda, habilidadId, municipioId, soloDisponibles, pagina: 0 })
+        .then(({ items, hayMas }) => {
+          if (!activo) return
+          setResultados(items)
+          setHayMas(hayMas)
+          setPagina(0)
         })
         .catch((e) => {
           if (activo) setError(e.message)
@@ -48,6 +54,22 @@ export function Directorio() {
       clearTimeout(t)
     }
   }, [busqueda, habilidadId, municipioId, soloDisponibles])
+
+  async function verMas() {
+    setCargandoMas(true)
+    setError(null)
+    try {
+      const siguiente = pagina + 1
+      const { items, hayMas } = await buscarDirectorio({ busqueda, habilidadId, municipioId, soloDisponibles, pagina: siguiente })
+      setResultados((prev) => [...prev, ...items])
+      setHayMas(hayMas)
+      setPagina(siguiente)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setCargandoMas(false)
+    }
+  }
 
   return (
     <div className="py-2">
@@ -123,7 +145,9 @@ export function Directorio() {
       )}
 
       <p className="mb-3 font-body text-[12.5px] font-bold text-tenue">
-        {cargando ? 'Buscando…' : `${resultados.length} ${resultados.length === 1 ? 'joven encontrado' : 'jóvenes encontrados'}`}
+        {cargando
+          ? 'Buscando…'
+          : `${resultados.length}${hayMas ? '+' : ''} ${resultados.length === 1 ? 'joven encontrado' : 'jóvenes encontrados'}`}
       </p>
 
       {!cargando && resultados.length === 0 && (
@@ -176,6 +200,17 @@ export function Directorio() {
           )
         })}
       </div>
+
+      {hayMas && !cargando && (
+        <button
+          type="button"
+          onClick={verMas}
+          disabled={cargandoMas}
+          className="mt-4 w-full rounded-2xl border border-borde bg-white py-3 font-display text-sm font-semibold text-tinta disabled:opacity-50"
+        >
+          {cargandoMas ? 'Cargando…' : 'Ver más jóvenes'}
+        </button>
+      )}
     </div>
   )
 }

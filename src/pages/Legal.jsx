@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { CORREO_CONTACTO, TEXTOS_LEGALES_VALIDADOS } from '../config.js'
-import { EDAD_MAXIMA, EDAD_MINIMA } from '../lib/edad.js'
+import { EDAD_MINIMA } from '../lib/edad.js'
 
 function Contacto() {
   return CORREO_CONTACTO ? (
@@ -64,7 +64,7 @@ export function Terminos() {
         <H>¿Quién puede registrarse?</H>
         <Lista
           items={[
-            `Jóvenes egresados de La Universidad en el Campo, entre ${EDAD_MINIMA} y ${EDAD_MAXIMA} años. Quienes tienen 16 o 17 años necesitan la autorización de su acudiente o representante legal.`,
+            `Jóvenes egresados de La Universidad en el Campo, desde los ${EDAD_MINIMA} años. Quienes tienen 16 o 17 años necesitan la autorización de su acudiente o representante legal.`,
             'Empresarios y empresas interesadas en contratar talento por habilidades.',
           ]}
         />

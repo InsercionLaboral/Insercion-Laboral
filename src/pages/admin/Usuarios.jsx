@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../../auth/AuthProvider.jsx'
 import { Cargando } from '../../components/Cargando.jsx'
+import { restablecerContrasenaDe } from '../../lib/cuenta.js'
 import {
   ETIQUETA_ROL,
   cambiarEstadoUsuario,
@@ -20,6 +21,9 @@ export function Usuarios() {
   const [busqueda, setBusqueda] = useState('')
   const [rol, setRol] = useState('todos')
   const [ocupado, setOcupado] = useState(null)
+  const [clavePara, setClavePara] = useState(null) // usuario al que se le pone contraseña
+  const [claveNueva, setClaveNueva] = useState('')
+  const [errorClave, setErrorClave] = useState(null)
 
   const cargar = useCallback(async () => setUsuarios(await listarUsuarios()), [])
 
@@ -66,6 +70,22 @@ export function Usuarios() {
       setAviso(`${u.nombre} ahora es ${ETIQUETA_ROL[nuevoRol]}.`)
     } catch (e) {
       setError(e.message)
+    } finally {
+      setOcupado(null)
+    }
+  }
+
+  async function guardarClave() {
+    setErrorClave(null)
+    if (claveNueva.length < 8) return setErrorClave('Mínimo 8 caracteres.')
+    setOcupado(clavePara.id)
+    try {
+      await restablecerContrasenaDe(clavePara.id, claveNueva)
+      setAviso(`Listo. La nueva contraseña de ${clavePara.nombre} es la que escribiste: compártela con esa persona por un medio privado.`)
+      setClavePara(null)
+      setClaveNueva('')
+    } catch (e) {
+      setErrorClave(e.message)
     } finally {
       setOcupado(null)
     }
@@ -155,6 +175,20 @@ export function Usuarios() {
                   <button
                     type="button"
                     disabled={ocupado === u.id}
+                    onClick={() => {
+                      setClavePara(u)
+                      setClaveNueva('')
+                      setErrorClave(null)
+                    }}
+                    className="rounded-full border border-borde px-3.5 py-1.5 font-body text-[12.5px] font-bold text-tinta disabled:opacity-50"
+                  >
+                    Restablecer contraseña
+                  </button>
+                )}
+                {!esYo && (
+                  <button
+                    type="button"
+                    disabled={ocupado === u.id}
                     onClick={() => alternarEstado(u)}
                     className="rounded-full border border-borde px-3.5 py-1.5 font-body text-[12.5px] font-bold text-tinta disabled:opacity-50"
                   >
@@ -162,6 +196,39 @@ export function Usuarios() {
                   </button>
                 )}
               </div>
+              {clavePara?.id === u.id && (
+                <div className="mt-3 rounded-2xl bg-fondo p-3">
+                  <label htmlFor={`clave-${u.id}`} className="mb-1.5 block font-body text-[12.5px] font-bold text-tinta">
+                    Contraseña nueva para {u.nombre}
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      id={`clave-${u.id}`}
+                      type="text"
+                      value={claveNueva}
+                      onChange={(e) => setClaveNueva(e.target.value)}
+                      placeholder="Mínimo 8 caracteres"
+                      className="min-w-0 flex-1 rounded-xl border border-borde bg-white px-3 py-2 font-body text-[13.5px] text-tinta outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={guardarClave}
+                      disabled={ocupado === u.id}
+                      className="rounded-xl bg-tinta px-3.5 py-2 font-body text-[12.5px] font-bold text-white disabled:opacity-50"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setClavePara(null)}
+                      className="rounded-xl px-2 py-2 font-body text-[12.5px] font-bold text-tenue"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                  {errorClave && <p className="mt-1.5 font-body text-xs font-semibold text-joven">{errorClave}</p>}
+                </div>
+              )}
             </div>
           )
         })}

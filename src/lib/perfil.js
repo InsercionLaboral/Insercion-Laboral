@@ -104,14 +104,30 @@ export async function getPerfilPublico(usuarioId) {
   return data?.[0] ?? null
 }
 
-/** Búsqueda del directorio de talento (RPC acotada). */
-export async function buscarDirectorio({ busqueda, habilidadId, municipioId, soloDisponibles } = {}) {
-  const { data, error } = await supabase.rpc('buscar_directorio', {
+export const TAMANO_PAGINA_DIRECTORIO = 24
+
+/**
+ * Búsqueda del directorio de talento (RPC acotada), por páginas. Pide una
+ * persona de más para saber si hay otra página. Devuelve { items, hayMas }.
+ */
+export async function buscarDirectorio({ busqueda, habilidadId, municipioId, soloDisponibles, pagina = 0 } = {}) {
+  const base = {
     p_busqueda: busqueda || null,
     p_habilidad: habilidadId || null,
     p_municipio: municipioId || null,
     p_solo_disponibles: !!soloDisponibles,
+  }
+  let { data, error } = await supabase.rpc('buscar_directorio', {
+    ...base,
+    p_limite: TAMANO_PAGINA_DIRECTORIO + 1,
+    p_desplazamiento: pagina * TAMANO_PAGINA_DIRECTORIO,
   })
+  // Base sin la migración de paginación: se pide la lista completa.
+  if (error && error.code === 'PGRST202') {
+    ;({ data, error } = await supabase.rpc('buscar_directorio', base))
+    if (!error) return { items: data ?? [], hayMas: false }
+  }
   if (error) throw new Error(error.message)
-  return data ?? []
+  const filas = data ?? []
+  return { items: filas.slice(0, TAMANO_PAGINA_DIRECTORIO), hayMas: filas.length > TAMANO_PAGINA_DIRECTORIO }
 }

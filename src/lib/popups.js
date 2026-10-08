@@ -2,7 +2,7 @@ import { supabase } from './supabase.js'
 
 const CAMPOS_POPUP = `
   id, titulo, descripcion, cupos, pago_estimado,
-  fecha_inicio, fecha_fin, fecha_cierre, estado, created_at,
+  fecha_inicio, fecha_fin, fecha_cierre, estado, motivo_revision, created_at,
   empresas ( id, nombre_empresa ),
   municipios ( id, nombre ),
   popup_habilidades ( habilidades ( id, nombre ) )
@@ -54,6 +54,36 @@ export async function crearPopup({ empresaId, datos, habilidadIds }) {
     if (e2) throw new Error(e2.message)
   }
   return popup
+}
+
+/**
+ * Edita un pop-up propio. Siempre vuelve a revisión ('pendiente'): así el
+ * equipo revisa los cambios antes de que los jóvenes los vean.
+ */
+export async function actualizarPopup({ popupId, datos, habilidadIds }) {
+  const { error } = await supabase
+    .from('popups')
+    .update({
+      titulo: datos.titulo,
+      descripcion: datos.descripcion,
+      municipio_id: datos.municipio_id || null,
+      cupos: datos.cupos ? Number(datos.cupos) : null,
+      pago_estimado: datos.pago_estimado || null,
+      fecha_inicio: datos.fecha_inicio || null,
+      fecha_fin: datos.fecha_fin || null,
+      fecha_cierre: datos.fecha_cierre ? new Date(datos.fecha_cierre).toISOString() : null,
+      estado: 'pendiente',
+    })
+    .eq('id', popupId)
+  if (error) throw new Error(error.message)
+
+  const { error: eDel } = await supabase.from('popup_habilidades').delete().eq('popup_id', popupId)
+  if (eDel) throw new Error(eDel.message)
+  if (habilidadIds.length > 0) {
+    const filas = habilidadIds.map((habilidad_id) => ({ popup_id: popupId, habilidad_id }))
+    const { error: eIns } = await supabase.from('popup_habilidades').insert(filas)
+    if (eIns) throw new Error(eIns.message)
+  }
 }
 
 /** Pop-ups de la empresa, con el conteo de postulaciones. */

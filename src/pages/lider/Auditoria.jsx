@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Cargando } from '../../components/Cargando.jsx'
 import { EstadoBadge } from '../../components/ui/EstadoBadge.jsx'
-import { listarAuditoria } from '../../lib/aprobaciones.js'
+import { devolverARevision, listarAuditoria } from '../../lib/aprobaciones.js'
 
 function fechaLegible(iso) {
   if (!iso) return '—'
@@ -16,13 +16,33 @@ export function Auditoria() {
   const [items, setItems] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
+  const [aviso, setAviso] = useState(null)
+  const [ocupado, setOcupado] = useState(null)
+
+  const cargar = useCallback(async () => setItems(await listarAuditoria()), [])
 
   useEffect(() => {
-    listarAuditoria()
-      .then(setItems)
+    cargar()
       .catch((e) => setError(e.message))
       .finally(() => setCargando(false))
-  }, [])
+  }, [cargar])
+
+  async function devolver(it) {
+    const que = it.tipo === 'Perfil' ? `el perfil de ${it.titulo}` : `el pop-up “${it.titulo}”`
+    if (!window.confirm(`¿Devolver ${que} a la cola de revisión? Dejará de estar publicado hasta que lo revises de nuevo.`)) return
+    setOcupado(it.id)
+    setError(null)
+    setAviso(null)
+    try {
+      await devolverARevision({ tipo: it.tipo, id: it.entidadId })
+      await cargar()
+      setAviso(`Listo: ${que} volvió a Aprobaciones.`)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setOcupado(null)
+    }
+  }
 
   if (cargando) return <Cargando />
 
@@ -32,7 +52,15 @@ export function Auditoria() {
         ← Aprobaciones
       </Link>
       <h1 className="mb-1 font-display text-2xl font-bold text-tinta">Historial de revisiones</h1>
-      <p className="mb-4 font-body text-sm text-tenue">Quién aprobó o rechazó qué, y cuándo.</p>
+      <p className="mb-4 font-body text-sm text-tenue">
+        Quién aprobó o rechazó qué, y cuándo. Si algo se decidió por error, usa “Devolver a revisión”.
+      </p>
+
+      {aviso && (
+        <p className="mb-3 rounded-xl bg-lima/30 px-3 py-2 font-body text-[13px] font-semibold text-[#5d6c17]">
+          {aviso}
+        </p>
+      )}
 
       {error && (
         <p className="mb-3 rounded-xl bg-joven/10 px-3 py-2 font-body text-[13px] font-semibold text-joven">
@@ -62,7 +90,19 @@ export function Auditoria() {
                   {it.tipo} · {fechaLegible(it.fecha)} · por {it.revisor}
                 </p>
               </div>
-              <EstadoBadge estado={it.estado} />
+              <div className="flex shrink-0 flex-col items-end gap-1.5">
+                <EstadoBadge estado={it.estado} />
+                {['aprobado', 'rechazado'].includes(it.estado) && (
+                  <button
+                    type="button"
+                    disabled={ocupado === it.id}
+                    onClick={() => devolver(it)}
+                    className="font-body text-[11.5px] font-bold text-empresario disabled:opacity-50"
+                  >
+                    Devolver a revisión
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>

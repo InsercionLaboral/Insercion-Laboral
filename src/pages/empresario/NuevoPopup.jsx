@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthProvider.jsx'
 import { Campo } from '../../components/ui/Campo.jsx'
 import { SelectorMunicipio } from '../../components/SelectorMunicipio.jsx'
 import { Boton } from '../../components/ui/Boton.jsx'
 import { SelectorHabilidades } from '../../components/SelectorHabilidades.jsx'
 import { Cargando } from '../../components/Cargando.jsx'
-import { crearPopup, getMiEmpresa } from '../../lib/popups.js'
+import { actualizarPopup, crearPopup, getMiEmpresa, getPopup } from '../../lib/popups.js'
 
+/** Formulario para publicar un pop-up nuevo o editar uno existente (/popups/:popupId/editar). */
 export function NuevoPopup() {
   const { usuario } = useAuth()
   const navigate = useNavigate()
+  const { popupId } = useParams()
+  const editando = !!popupId
+  const [estadoOriginal, setEstadoOriginal] = useState(null)
 
   const [empresa, setEmpresa] = useState(null)
   const [cargando, setCargando] = useState(true)
@@ -33,14 +37,31 @@ export function NuevoPopup() {
 
   useEffect(() => {
     if (!usuario) return
-    getMiEmpresa(usuario.id)
-      .then((e) => {
-        setEmpresa(e)
-        if (e?.municipio_id) set('municipio_id', e.municipio_id)
-      })
-      .catch((e) => setError(e.message))
+    ;(async () => {
+      const e = await getMiEmpresa(usuario.id)
+      setEmpresa(e)
+      if (editando) {
+        const p = await getPopup(popupId)
+        if (!p) throw new Error('No encontramos este pop-up.')
+        setEstadoOriginal(p.estado)
+        setF({
+          titulo: p.titulo ?? '',
+          descripcion: p.descripcion ?? '',
+          municipio_id: p.municipios?.id ?? '',
+          cupos: p.cupos ?? '',
+          pago_estimado: p.pago_estimado ?? '',
+          fecha_inicio: p.fecha_inicio ?? '',
+          fecha_fin: p.fecha_fin ?? '',
+          fecha_cierre: p.fecha_cierre ? p.fecha_cierre.slice(0, 10) : '',
+        })
+        setHabilidadIds((p.habilidades ?? []).map((h) => h.id))
+      } else if (e?.municipio_id) {
+        set('municipio_id', e.municipio_id)
+      }
+    })()
+      .catch((err) => setError(err.message))
       .finally(() => setCargando(false))
-  }, [usuario])
+  }, [usuario, editando, popupId])
 
   async function enviar() {
     setError(null)
@@ -57,8 +78,13 @@ export function NuevoPopup() {
 
     setEnviando(true)
     try {
-      await crearPopup({ empresaId: empresa.id, datos: f, habilidadIds })
-      navigate('/empresario/popups', { replace: true })
+      if (editando) {
+        await actualizarPopup({ popupId, datos: f, habilidadIds })
+        navigate(`/empresario/popups/${popupId}`, { replace: true })
+      } else {
+        await crearPopup({ empresaId: empresa.id, datos: f, habilidadIds })
+        navigate('/empresario/popups', { replace: true })
+      }
     } catch (e) {
       setError(e.message)
     } finally {
@@ -70,10 +96,17 @@ export function NuevoPopup() {
 
   return (
     <div className="py-2">
-      <h1 className="font-display text-2xl font-bold text-tinta">Nuevo pop-up</h1>
+      <h1 className="font-display text-2xl font-bold text-tinta">{editando ? 'Editar pop-up' : 'Nuevo pop-up'}</h1>
       <span className="mt-2 inline-flex rounded-full bg-naranja/15 px-3 py-1 font-body text-[12px] font-bold text-[#B96C00]">
         ⚡ Contratación corta por habilidades
       </span>
+      {editando && (
+        <p className="mt-3 rounded-xl bg-naranja/10 px-3 py-2 font-body text-[12.5px] text-[#B96C00]">
+          {estadoOriginal === 'aprobado'
+            ? 'Al guardar, tu pop-up vuelve a revisión y deja de verse hasta que el equipo apruebe los cambios.'
+            : 'Al guardar, tu pop-up se envía de nuevo a revisión.'}
+        </p>
+      )}
 
       <div className="mt-5 space-y-4">
         <Campo
@@ -167,7 +200,7 @@ export function NuevoPopup() {
       )}
 
       <Boton variante="joven" className="mt-6" cargando={enviando} onClick={enviar}>
-        Publicar pop-up
+        {editando ? 'Guardar y enviar a revisión' : 'Publicar pop-up'}
       </Boton>
       <p className="mt-3 text-center font-body text-xs text-tenue">
         Un líder de área lo aprueba antes de que sea visible. 🔎

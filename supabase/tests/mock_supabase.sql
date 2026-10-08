@@ -16,7 +16,8 @@ create table auth.users (
   raw_user_meta_data jsonb,
   raw_app_meta_data jsonb,
   email_confirmed_at timestamptz,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
 create function auth.uid() returns uuid language sql stable as

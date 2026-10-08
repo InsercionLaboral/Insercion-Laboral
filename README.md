@@ -5,7 +5,7 @@ mediante contratación por habilidades ("pop-ups"), recursos de formación y seg
 de resultados.
 
 - **Stack:** React + Vite · Tailwind CSS · Supabase (Postgres + Auth + RLS + Storage) · Vercel.
-- **Planeación:** ver [planeacion-plataforma-insercion-laboral.md](planeacion-plataforma-insercion-laboral.md) (alcance funcional) y [fases-implementacion-insercion-laboral.md](fases-implementacion-insercion-laboral.md) (hoja de ruta por fases). Estado: **fases 0 a 6 implementadas**; la Fase 7 (lanzamiento) queda a la espera de la validación jurídica de los textos legales y de aplicar las migraciones de `supabase/migrations/`.
+- **Planeación:** ver [planeacion-plataforma-insercion-laboral.md](planeacion-plataforma-insercion-laboral.md) (alcance funcional) y [fases-implementacion-insercion-laboral.md](fases-implementacion-insercion-laboral.md) (hoja de ruta por fases). Estado: **fases 0 a 6 implementadas y migraciones aplicadas**; la Fase 7 (lanzamiento) queda a la espera de la validación jurídica de los textos legales, el correo oficial de contacto y las pruebas con jóvenes.
 
 ## Requisitos
 
@@ -49,7 +49,7 @@ El esquema y los catálogos ya están aplicados al proyecto. Para recrearlos en 
 2. [catalogo-habilidades-insercion-laboral.sql](catalogo-habilidades-insercion-laboral.sql) — seed de habilidades.
 3. Sembrar `municipios` con los 27 municipios de Caldas.
 
-El `.sql` del esquema ya incluye todo lo posterior (proyectos destacados y endurecimiento de seguridad). En un proyecto **ya existente** basta con correr, en este orden, los archivos de [supabase/migrations/](supabase/migrations/): `20261007000000_proyectos_destacados.sql` y `20261007000100_endurecer_seguridad.sql` (ambos reejecutables). Después correr los avisos de seguridad de Supabase y regenerar los tipos.
+El `.sql` del esquema ya incluye todo lo posterior (proyectos destacados y endurecimiento de seguridad). En un proyecto **ya existente** basta con correr, en este orden, los archivos de [supabase/migrations/](supabase/migrations/) en orden: `20261007000000_proyectos_destacados.sql`, `20261007000100_endurecer_seguridad.sql` y `20261008000000_funciones_lanzamiento.sql` (todos reejecutables). `supabase/mantenimiento/limpiar-datos-prueba.sql` retira las cuentas de prueba y demo. Después correr los avisos de seguridad de Supabase y regenerar los tipos.
 
 Los tipos TypeScript del esquema están en [src/lib/database.types.ts](src/lib/database.types.ts) (regenerar tras cambios en la BD).
 

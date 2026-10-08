@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider.jsx'
 import { ROLES } from '../constants/roles.js'
+import { useAvisosNoLeidos } from '../hooks/useAvisosNoLeidos.js'
 
 const NAV_POR_ROL = {
   [ROLES.JOVEN]: [
@@ -40,20 +41,39 @@ export function AppLayout() {
   const { usuario, rol, signOut } = useAuth()
   const nav = NAV_POR_ROL[rol] ?? []
   const ancho = ANCHO_POR_ROL[rol] ?? 'max-w-screen-sm'
+  const sinLeer = useAvisosNoLeidos()
 
   return (
     <div className={`mx-auto flex min-h-dvh w-full ${ancho} flex-col bg-fondo`}>
       <header className="no-imprimir flex items-center justify-between px-5 py-4">
         <span className="font-display text-lg font-semibold text-tinta">Inserción Laboral</span>
-        <div className="flex items-center gap-3">
-          {usuario?.nombre && (
-            <span className="hidden font-body text-sm text-tenue sm:block">
-              Hola, {usuario.nombre.split(' ')[0]}
-            </span>
+        <div className="flex items-center gap-2">
+          {sinLeer !== null && (
+            <NavLink
+              to="/avisos"
+              className="relative flex size-9 items-center justify-center rounded-full border border-borde bg-superficie text-lg"
+              aria-label={sinLeer > 0 ? `Avisos: ${sinLeer} sin leer` : 'Avisos'}
+              title="Avisos"
+            >
+              🔔
+              {sinLeer > 0 && (
+                <span className="absolute -right-1 -top-1 flex min-w-5 items-center justify-center rounded-full bg-joven px-1 font-body text-[10.5px] font-bold leading-5 text-white">
+                  {sinLeer > 9 ? '9+' : sinLeer}
+                </span>
+              )}
+            </NavLink>
           )}
+          <NavLink
+            to="/cuenta"
+            className="flex h-9 items-center gap-1.5 rounded-full border border-borde bg-superficie px-3 font-body text-xs font-bold text-tinta"
+            title="Mi cuenta"
+          >
+            👤 <span className="hidden sm:inline">{usuario?.nombre?.split(' ')[0] ?? 'Mi cuenta'}</span>
+            <span className="sm:hidden">Cuenta</span>
+          </NavLink>
           <button
             onClick={signOut}
-            className="rounded-full border border-borde bg-superficie px-3 py-1.5 font-body text-xs font-bold text-tenue"
+            className="h-9 rounded-full border border-borde bg-superficie px-3 font-body text-xs font-bold text-tenue"
           >
             Salir
           </button>

@@ -37,6 +37,10 @@ export const router = createBrowserRouter([
           { path: '/', ...perezoso(() => import('../pages/Landing.jsx'), 'Landing') },
           { path: '/registro', ...perezoso(() => import('../pages/Registro.jsx'), 'Registro') },
           { path: '/login', ...perezoso(() => import('../pages/Login.jsx'), 'Login') },
+          {
+            path: '/recuperar',
+            ...perezoso(() => import('../pages/RecuperarContrasena.jsx'), 'RecuperarContrasena'),
+          },
         ],
       },
       {
@@ -45,6 +49,21 @@ export const router = createBrowserRouter([
       },
       { path: '/terminos', ...perezoso(() => import('../pages/Legal.jsx'), 'Terminos') },
       { path: '/privacidad', ...perezoso(() => import('../pages/Legal.jsx'), 'Privacidad') },
+
+      // Destino del enlace de recuperación (abre una sesión temporal)
+      {
+        path: '/restablecer',
+        ...perezoso(() => import('../pages/RestablecerContrasena.jsx'), 'RestablecerContrasena'),
+      },
+
+      // Comunes a todos los roles
+      {
+        element: protegido(undefined),
+        children: [
+          { path: '/avisos', ...perezoso(() => import('../pages/Avisos.jsx'), 'Avisos') },
+          { path: '/cuenta', ...perezoso(() => import('../pages/MiCuenta.jsx'), 'MiCuenta') },
+        ],
+      },
 
       // Punto de entrada tras autenticarse
       { path: '/entrar', element: <RedirigirPorRol /> },
@@ -93,6 +112,10 @@ export const router = createBrowserRouter([
           },
           { path: 'popups', ...perezoso(() => import('../pages/empresario/MisPopups.jsx'), 'MisPopups') },
           { path: 'popups/nuevo', ...perezoso(() => import('../pages/empresario/NuevoPopup.jsx'), 'NuevoPopup') },
+          {
+            path: 'popups/:popupId/editar',
+            ...perezoso(() => import('../pages/empresario/NuevoPopup.jsx'), 'NuevoPopup'),
+          },
           {
             path: 'popups/:popupId',
             ...perezoso(() => import('../pages/empresario/PopupDetalle.jsx'), 'PopupDetalle'),

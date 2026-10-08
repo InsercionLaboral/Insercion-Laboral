@@ -4,6 +4,7 @@ import { useAuth } from '../../auth/AuthProvider.jsx'
 import { Cargando } from '../../components/Cargando.jsx'
 import { Avatar } from '../../components/ui/Avatar.jsx'
 import { Chip } from '../../components/ui/Chip.jsx'
+import { DialogoMotivo } from '../../components/DialogoMotivo.jsx'
 import { rangoFechas } from '../../lib/fechas.js'
 import {
   listarPerfilesPendientes,
@@ -21,6 +22,7 @@ export function Aprobaciones() {
   const [ocupado, setOcupado] = useState(null)
   const [error, setError] = useState(null)
   const [aviso, setAviso] = useState(null)
+  const [rechazo, setRechazo] = useState(null) // { tipo: 'perfil' | 'popup', item }
 
   const cargar = useCallback(async () => {
     const [p, pu] = await Promise.all([listarPerfilesPendientes(), listarPopupsPendientes()])
@@ -34,13 +36,13 @@ export function Aprobaciones() {
       .finally(() => setCargando(false))
   }, [cargar])
 
-  async function decidirPerfil(perfil, aprobado) {
+  async function decidirPerfil(perfil, aprobado, motivo = null) {
     setOcupado(perfil.id)
     setError(null)
     try {
-      await revisarPerfil({ perfilId: perfil.id, aprobado, revisorId: usuario.id })
+      await revisarPerfil({ perfilId: perfil.id, aprobado, revisorId: usuario.id, motivo })
       setPerfiles((prev) => prev.filter((x) => x.id !== perfil.id))
-      setAviso(`Perfil de ${perfil.nombre} ${aprobado ? 'aprobado' : 'rechazado'}.`)
+      setAviso(`Perfil de ${perfil.nombre} ${aprobado ? 'aprobado' : 'devuelto con tu comentario'}.`)
     } catch (e) {
       setError(e.message)
     } finally {
@@ -48,24 +50,42 @@ export function Aprobaciones() {
     }
   }
 
-  async function decidirPopup(popup, aprobado) {
+  async function decidirPopup(popup, aprobado, motivo = null) {
     setOcupado(popup.id)
     setError(null)
     try {
-      await revisarPopup({ popupId: popup.id, aprobado, revisorId: usuario.id })
+      await revisarPopup({ popupId: popup.id, aprobado, revisorId: usuario.id, motivo })
       setPopups((prev) => prev.filter((x) => x.id !== popup.id))
-      setAviso(`Pop-up "${popup.titulo}" ${aprobado ? 'aprobado y publicado' : 'rechazado'}.`)
+      setAviso(`Pop-up "${popup.titulo}" ${aprobado ? 'aprobado y publicado' : 'rechazado con tu comentario'}.`)
     } catch (e) {
       setError(e.message)
     } finally {
       setOcupado(null)
     }
+  }
+
+  async function confirmarRechazo(motivo) {
+    const { tipo, item } = rechazo
+    setRechazo(null)
+    if (tipo === 'perfil') await decidirPerfil(item, false, motivo)
+    else await decidirPopup(item, false, motivo)
   }
 
   if (cargando) return <Cargando />
 
   return (
     <div className="py-2">
+      <DialogoMotivo
+        abierto={!!rechazo}
+        titulo={rechazo?.tipo === 'popup' ? `Rechazar “${rechazo?.item.titulo}”` : `Pedir cambios a ${rechazo?.item.nombre ?? ''}`}
+        ayuda={
+          rechazo?.tipo === 'popup'
+            ? 'Cuéntale al empresario qué debe ajustar. Lo verá en su pop-up y en sus avisos.'
+            : 'Cuéntale al joven qué debe corregir. Lo verá en su perfil y en sus avisos.'
+        }
+        onCancelar={() => setRechazo(null)}
+        onConfirmar={confirmarRechazo}
+      />
       <p className="font-body text-xs text-tenue">Pendiente de revisión</p>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold text-tinta">Aprobaciones</h1>
@@ -134,7 +154,7 @@ export function Aprobaciones() {
                 <Acciones
                   verA={`/lider/perfil/${p.usuarioId}`}
                   ocupado={ocupado === p.id}
-                  onRechazar={() => decidirPerfil(p, false)}
+                  onRechazar={() => setRechazo({ tipo: 'perfil', item: p })}
                   onAprobar={() => decidirPerfil(p, true)}
                 />
               </div>
@@ -191,7 +211,7 @@ export function Aprobaciones() {
               <Acciones
                 verA={`/lider/popup/${p.id}`}
                 ocupado={ocupado === p.id}
-                onRechazar={() => decidirPopup(p, false)}
+                onRechazar={() => setRechazo({ tipo: 'popup', item: p })}
                 onAprobar={() => decidirPopup(p, true)}
               />
             </div>

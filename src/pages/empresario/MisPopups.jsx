@@ -56,10 +56,17 @@ export function MisPopups() {
               to={`/empresario/popups/${p.id}`}
               mostrarEstado
               pie={
-                <span className="font-body text-[12.5px] font-bold text-tenue">
-                  📨 {p.totalPostulaciones}{' '}
-                  {p.totalPostulaciones === 1 ? 'postulación' : 'postulaciones'}
-                </span>
+                p.estado === 'rechazado' ? (
+                  <span className="font-body text-[12.5px] text-joven">
+                    <span className="font-bold">No publicado:</span>{' '}
+                    {p.motivo_revision ?? 'Ábrelo para ver qué ajustar.'}
+                  </span>
+                ) : (
+                  <span className="font-body text-[12.5px] font-bold text-tenue">
+                    📨 {p.totalPostulaciones}{' '}
+                    {p.totalPostulaciones === 1 ? 'postulación' : 'postulaciones'}
+                  </span>
+                )
               }
             />
           ))}

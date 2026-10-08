@@ -164,3 +164,55 @@ reset role;
 set role authenticated; select set_config('request.jwt.claim.sub','11111111-0000-0000-0000-000000000006', false);
 select public.t_igual('admin ve la vista KPI con datos', (select count(*) > 0 from vista_kpi_municipio), true);
 reset role;
+
+\echo '=== 11. MOTIVO DE REVISIÓN Y AVISOS ==='
+select set_config('request.jwt.claim.sub','',false);
+select public.t_permite('joven intenta escribir un motivo en su perfil', format($q$update perfiles_joven set motivo_revision='me apruebo yo' where usuario_id='%s'$q$, current_setting('t.j1')), '11111111-0000-0000-0000-000000000001');
+select public.t_igual('el motivo se ignora', (select motivo_revision from perfiles_joven where usuario_id=current_setting('t.j1')::uuid), null::text);
+select public.t_permite('lider rechaza con motivo', format($q$update perfiles_joven set estado_revision='rechazado', motivo_revision='Agrega una foto de frente' where usuario_id='%s'$q$, current_setting('t.j1')), '11111111-0000-0000-0000-000000000005');
+select public.t_igual('el joven recibe el aviso con el motivo', (select count(*) from notificaciones where usuario_id=current_setting('t.j1')::uuid and tipo='perfil_rechazado' and mensaje='Agrega una foto de frente'), 1::bigint);
+select public.t_permite('joven reenvía a revisión', format($q$update perfiles_joven set estado_revision='en_revision' where usuario_id='%s'$q$, current_setting('t.j1')), '11111111-0000-0000-0000-000000000001');
+select public.t_igual('el personal recibe aviso de perfil por revisar', (select count(*) > 0 from notificaciones n join usuarios u on u.id=n.usuario_id where u.rol in ('lider','admin') and n.tipo='perfil_por_revisar'), true);
+update perfiles_joven set estado_revision='aprobado' where usuario_id = current_setting('t.j1')::uuid;
+
+set role authenticated; select set_config('request.jwt.claim.sub','11111111-0000-0000-0000-000000000002', false);
+select public.t_igual('otro joven NO ve los avisos ajenos', (select count(*) from notificaciones where usuario_id=current_setting('t.j1')::uuid), 0::bigint);
+reset role; select set_config('request.jwt.claim.sub','',false);
+select public.t_bloquea('nadie crea avisos a mano', format($q$insert into notificaciones (usuario_id, tipo, titulo) values ('%s','x','falso')$q$, current_setting('t.j1')), '11111111-0000-0000-0000-000000000001');
+select public.t_permite('el joven marca sus avisos como leídos y trata de cambiar el texto', $q$update notificaciones set leida=true, titulo='cambiado' where true$q$, '11111111-0000-0000-0000-000000000001');
+select public.t_igual('quedan leídos', (select bool_and(leida) from notificaciones where usuario_id=current_setting('t.j1')::uuid), true);
+select public.t_igual('el texto no cambia', (select count(*) from notificaciones where titulo='cambiado'), 0::bigint);
+
+update perfiles_joven set disponible = true where id = current_setting('t.pj1')::uuid;
+insert into joven_habilidades (joven_id, habilidad_id) select current_setting('t.pj1')::uuid, (select id from habilidades order by nombre limit 1) on conflict do nothing;
+insert into popups (empresa_id, titulo, descripcion, estado) values (current_setting('t.emp1')::uuid, 'Pop avisos', 'x', 'pendiente');
+insert into popup_habilidades (popup_id, habilidad_id) select (select id from popups where titulo='Pop avisos'), (select id from habilidades order by nombre limit 1);
+select public.t_permite('lider publica el pop-up', $q$update popups set estado='aprobado' where titulo='Pop avisos'$q$, '11111111-0000-0000-0000-000000000005');
+select public.t_igual('el joven con la habilidad recibe "Nueva oportunidad"', (select count(*) from notificaciones where usuario_id=current_setting('t.j1')::uuid and tipo='popup_nuevo'), 1::bigint);
+select public.t_igual('el empresario recibe "publicado"', (select count(*) from notificaciones where usuario_id=current_setting('t.e1')::uuid and tipo='popup_aprobado' and mensaje like '%Pop avisos%'), 1::bigint);
+select public.t_permite('el joven se postula', format($q$insert into postulaciones (popup_id, joven_id) values ((select id from popups where titulo='Pop avisos'),'%s')$q$, current_setting('t.pj1')), '11111111-0000-0000-0000-000000000001');
+select public.t_igual('el empresario recibe "Nueva postulación"', (select count(*) from notificaciones where usuario_id=current_setting('t.e1')::uuid and tipo='postulacion_nueva' and mensaje like '%Pop avisos%'), 1::bigint);
+select public.t_permite('el empresario preselecciona', $q$update postulaciones set estado='preseleccionado' where popup_id=(select id from popups where titulo='Pop avisos')$q$, '11111111-0000-0000-0000-000000000003');
+select public.t_igual('el joven recibe "¡Vas bien!"', (select count(*) from notificaciones where usuario_id=current_setting('t.j1')::uuid and titulo='¡Vas bien!'), 1::bigint);
+
+select public.t_permite('lider rechaza un pop-up con motivo', $q$update popups set estado='rechazado', motivo_revision='Falta el pago' where titulo='Pop pendiente'$q$, '11111111-0000-0000-0000-000000000005');
+select public.t_igual('el empresario recibe el motivo', (select count(*) from notificaciones where usuario_id=current_setting('t.e1')::uuid and mensaje='Falta el pago'), 1::bigint);
+select public.t_bloquea('empresario se aprueba el rechazado', $q$update popups set estado='aprobado' where titulo='Pop pendiente'$q$, '11111111-0000-0000-0000-000000000003');
+select public.t_permite('empresario corrige y reenvía', $q$update popups set estado='pendiente', pago_estimado='50.000 por dia' where titulo='Pop pendiente'$q$, '11111111-0000-0000-0000-000000000003');
+select public.t_igual('queda pendiente', (select estado from popups where titulo='Pop pendiente'), 'pendiente'::text);
+select public.t_permite('empresario edita un pop-up publicado y lo devuelve a revisión', $q$update popups set estado='pendiente', titulo='Pop avisos editado' where titulo='Pop avisos'$q$, '11111111-0000-0000-0000-000000000003');
+select public.t_igual('el personal recibe aviso del pop-up editado', (select count(*) > 0 from notificaciones where tipo='popup_por_revisar' and mensaje like '%Pop avisos editado%'), true);
+
+select public.t_permite('lider publica un recurso', $q$insert into recursos (tipo, titulo) values ('taller','Taller de prueba')$q$, '11111111-0000-0000-0000-000000000005');
+select public.t_igual('los jóvenes activos reciben el aviso', (select count(*) from notificaciones where tipo='recurso_nuevo'), (select count(*) from usuarios where rol='joven' and estado='activo'));
+
+\echo '=== 12. DIRECTORIO POR PÁGINAS Y CONTRASEÑAS ==='
+set role authenticated; select set_config('request.jwt.claim.sub','11111111-0000-0000-0000-000000000003', false);
+select public.t_igual('el directorio respeta el límite', (select count(*) from buscar_directorio(null, null, null, false, 1, 0)), 1::bigint);
+select public.t_igual('la llamada antigua (4 datos) sigue funcionando', (select count(*) >= 1 from buscar_directorio(null, null, null, false)), true);
+reset role; select set_config('request.jwt.claim.sub','',false);
+select public.t_bloquea('un joven intenta cambiar la contraseña de otro', format($q$select admin_restablecer_contrasena('%s','Nueva-Clave-123')$q$, current_setting('t.j2')), '11111111-0000-0000-0000-000000000001');
+select public.t_bloquea('la líder tampoco puede', format($q$select admin_restablecer_contrasena('%s','Nueva-Clave-123')$q$, current_setting('t.j2')), '11111111-0000-0000-0000-000000000005');
+select public.t_bloquea('contraseña demasiado corta', format($q$select admin_restablecer_contrasena('%s','corta')$q$, current_setting('t.j2')), '11111111-0000-0000-0000-000000000006');
+select public.t_permite('el admin restablece la contraseña', format($q$select admin_restablecer_contrasena('%s','Nueva-Clave-123')$q$, current_setting('t.j2')), '11111111-0000-0000-0000-000000000006');
+select public.t_igual('la contraseña nueva queda guardada cifrada', (select encrypted_password = crypt('Nueva-Clave-123', encrypted_password) from auth.users where id='11111111-0000-0000-0000-000000000002'), true);

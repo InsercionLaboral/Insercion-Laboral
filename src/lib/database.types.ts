@@ -1,10 +1,3 @@
-// ============================================================================
-// Tipos TypeScript generados desde el esquema de Supabase.
-// NO editar a mano. Regenerar tras cambios en la BD con el MCP de Supabase
-// (generate_typescript_types) o la CLI: supabase gen types typescript.
-// Sirven de referencia del modelo de datos aunque la app esté en JSX.
-// ============================================================================
-
 export type Json =
   | string
   | number
@@ -200,6 +193,47 @@ export type Database = {
         }
         Relationships: []
       }
+      notificaciones: {
+        Row: {
+          created_at: string
+          enlace: string | null
+          id: string
+          leida: boolean
+          mensaje: string | null
+          tipo: string
+          titulo: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          enlace?: string | null
+          id?: string
+          leida?: boolean
+          mensaje?: string | null
+          tipo: string
+          titulo: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          enlace?: string | null
+          id?: string
+          leida?: boolean
+          mensaje?: string | null
+          tipo?: string
+          titulo?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificaciones_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       perfiles_joven: {
         Row: {
           created_at: string
@@ -209,6 +243,7 @@ export type Database = {
           formacion: string | null
           foto_url: string | null
           id: string
+          motivo_revision: string | null
           presentacion: string | null
           revisado_por: string | null
           telefono: string | null
@@ -223,6 +258,7 @@ export type Database = {
           formacion?: string | null
           foto_url?: string | null
           id?: string
+          motivo_revision?: string | null
           presentacion?: string | null
           revisado_por?: string | null
           telefono?: string | null
@@ -237,6 +273,7 @@ export type Database = {
           formacion?: string | null
           foto_url?: string | null
           id?: string
+          motivo_revision?: string | null
           presentacion?: string | null
           revisado_por?: string | null
           telefono?: string | null
@@ -302,6 +339,7 @@ export type Database = {
           fecha_inicio: string | null
           fecha_publicacion: string | null
           id: string
+          motivo_revision: string | null
           municipio_id: string | null
           pago_estimado: string | null
           revisado_por: string | null
@@ -318,6 +356,7 @@ export type Database = {
           fecha_inicio?: string | null
           fecha_publicacion?: string | null
           id?: string
+          motivo_revision?: string | null
           municipio_id?: string | null
           pago_estimado?: string | null
           revisado_por?: string | null
@@ -334,6 +373,7 @@ export type Database = {
           fecha_inicio?: string | null
           fecha_publicacion?: string | null
           id?: string
+          motivo_revision?: string | null
           municipio_id?: string | null
           pago_estimado?: string | null
           revisado_por?: string | null
@@ -345,6 +385,13 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "popups_municipio_id_fkey"
+            columns: ["municipio_id"]
+            isOneToOne: false
+            referencedRelation: "municipios"
             referencedColumns: ["id"]
           },
           {
@@ -551,12 +598,18 @@ export type Database = {
       }
     }
     Functions: {
+      admin_restablecer_contrasena: {
+        Args: { p_contrasena: string; p_usuario_id: string }
+        Returns: undefined
+      }
       auth_rol: { Args: never; Returns: string }
       auth_usuario_id: { Args: never; Returns: string }
       buscar_directorio: {
         Args: {
           p_busqueda?: string
+          p_desplazamiento?: number
           p_habilidad?: string
+          p_limite?: number
           p_municipio?: string
           p_solo_disponibles?: boolean
         }
@@ -582,6 +635,25 @@ export type Database = {
           telefono: string
           usuario_id: string
         }[]
+      }
+      notificar: {
+        Args: {
+          p_enlace: string
+          p_mensaje: string
+          p_tipo: string
+          p_titulo: string
+          p_usuario: string
+        }
+        Returns: undefined
+      }
+      notificar_personal: {
+        Args: {
+          p_enlace: string
+          p_mensaje: string
+          p_tipo: string
+          p_titulo: string
+        }
+        Returns: undefined
       }
       obtener_perfil_publico: {
         Args: { p_usuario_id: string }
@@ -616,12 +688,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -645,11 +717,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -670,11 +742,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -695,11 +767,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -712,11 +784,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

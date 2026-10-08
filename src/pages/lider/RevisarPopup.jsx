@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthProvider.jsx'
 import { Cargando } from '../../components/Cargando.jsx'
+import { DialogoMotivo } from '../../components/DialogoMotivo.jsx'
 import { Chip } from '../../components/ui/Chip.jsx'
 import { EstadoBadge } from '../../components/ui/EstadoBadge.jsx'
 import { getPopup } from '../../lib/popups.js'
@@ -18,6 +19,7 @@ export function RevisarPopup() {
   const [cargando, setCargando] = useState(true)
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState(null)
+  const [pidiendoMotivo, setPidiendoMotivo] = useState(false)
 
   useEffect(() => {
     getPopup(popupId)
@@ -26,11 +28,11 @@ export function RevisarPopup() {
       .finally(() => setCargando(false))
   }, [popupId])
 
-  async function decidir(aprobado) {
+  async function decidir(aprobado, motivo = null) {
     setOcupado(true)
     setError(null)
     try {
-      await revisarPopup({ popupId, aprobado, revisorId: usuario.id })
+      await revisarPopup({ popupId, aprobado, revisorId: usuario.id, motivo })
       navigate('/lider', { replace: true })
     } catch (e) {
       setError(e.message)
@@ -54,6 +56,17 @@ export function RevisarPopup() {
 
   return (
     <div className="py-2">
+      <DialogoMotivo
+        abierto={pidiendoMotivo}
+        titulo={`Rechazar “${popup.titulo}”`}
+        ayuda="Cuéntale al empresario qué debe ajustar. Lo verá en su pop-up y en sus avisos."
+        ocupado={ocupado}
+        onCancelar={() => setPidiendoMotivo(false)}
+        onConfirmar={(motivo) => {
+          setPidiendoMotivo(false)
+          decidir(false, motivo)
+        }}
+      />
       <Link to="/lider" className="mb-3 inline-block font-body text-sm font-bold text-empresario">
         ← Aprobaciones
       </Link>
@@ -104,7 +117,7 @@ export function RevisarPopup() {
       {popup.estado === 'pendiente' ? (
         <div className="mt-4 flex gap-2.5">
           <button
-            onClick={() => decidir(false)}
+            onClick={() => setPidiendoMotivo(true)}
             disabled={ocupado}
             className="flex-1 rounded-xl border border-[#F1B5B5] bg-white py-3 font-body text-[14px] font-bold text-[#C23B3B] disabled:opacity-50"
           >

@@ -142,6 +142,23 @@ export function PopupDetalle() {
             Cerrar pop-up
           </button>
         )}
+        {popup.estado === 'rechazado' && (
+          <div className="mt-4 rounded-xl bg-joven/10 px-3 py-2.5">
+            <p className="font-body text-[12.5px] font-bold text-joven">El equipo no publicó este pop-up</p>
+            {popup.motivo_revision && (
+              <p className="mt-1 font-body text-[13.5px] text-tinta">{popup.motivo_revision}</p>
+            )}
+            <p className="mt-1 font-body text-xs text-tenue">Corrígelo con “Editar” y se enviará de nuevo a revisión.</p>
+          </div>
+        )}
+        {popup.estado !== 'cerrado' && (
+          <Link
+            to={`/empresario/popups/${popup.id}/editar`}
+            className="ml-2 mt-4 inline-block rounded-2xl border border-borde bg-white px-4 py-2 font-body text-[13px] font-bold text-tinta"
+          >
+            ✏️ Editar
+          </Link>
+        )}
         {popup.estado === 'pendiente' && (
           <p className="mt-4 rounded-xl bg-naranja/10 px-3 py-2 font-body text-[12.5px] text-[#B96C00]">
             Este pop-up está esperando aprobación de un líder de área. Aún no es visible para los jóvenes.

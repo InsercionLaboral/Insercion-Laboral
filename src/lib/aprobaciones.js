@@ -72,12 +72,16 @@ export async function getPerfilPorUsuario(usuarioId) {
   return data
 }
 
-/** Aprueba o rechaza un perfil, dejando registro de quién y cuándo. */
-export async function revisarPerfil({ perfilId, aprobado, revisorId }) {
+/**
+ * Aprueba o rechaza un perfil, dejando registro de quién y cuándo. Al rechazar,
+ * `motivo` explica al joven qué debe corregir (lo ve en su perfil y en sus avisos).
+ */
+export async function revisarPerfil({ perfilId, aprobado, revisorId, motivo = null }) {
   const { error } = await supabase
     .from('perfiles_joven')
     .update({
       estado_revision: aprobado ? 'aprobado' : 'rechazado',
+      motivo_revision: aprobado ? null : motivo?.trim() || null,
       revisado_por: revisorId,
       fecha_revision: new Date().toISOString(),
     })
@@ -86,15 +90,28 @@ export async function revisarPerfil({ perfilId, aprobado, revisorId }) {
 }
 
 /** Aprueba o rechaza un pop-up. Al aprobar, marca la fecha de publicación. */
-export async function revisarPopup({ popupId, aprobado, revisorId }) {
+export async function revisarPopup({ popupId, aprobado, revisorId, motivo = null }) {
   const { error } = await supabase
     .from('popups')
     .update({
       estado: aprobado ? 'aprobado' : 'rechazado',
+      motivo_revision: aprobado ? null : motivo?.trim() || null,
       revisado_por: revisorId,
       ...(aprobado ? { fecha_publicacion: new Date().toISOString() } : {}),
     })
     .eq('id', popupId)
+  if (error) throw new Error(error.message)
+}
+
+/** Deshace una decisión: el perfil o el pop-up vuelve a la cola de revisión. */
+export async function devolverARevision({ tipo, id }) {
+  const { error } =
+    tipo === 'Perfil'
+      ? await supabase
+          .from('perfiles_joven')
+          .update({ estado_revision: 'en_revision', motivo_revision: null })
+          .eq('id', id)
+      : await supabase.from('popups').update({ estado: 'pendiente', motivo_revision: null }).eq('id', id)
   if (error) throw new Error(error.message)
 }
 
@@ -129,6 +146,7 @@ export async function listarAuditoria(limite = 20) {
   const items = [
     ...(perfiles.data ?? []).map((p) => ({
       id: `perfil-${p.id}`,
+      entidadId: p.id,
       tipo: 'Perfil',
       titulo: p.titular?.nombre ?? '—',
       estado: p.estado_revision,
@@ -137,6 +155,7 @@ export async function listarAuditoria(limite = 20) {
     })),
     ...(popups.data ?? []).map((p) => ({
       id: `popup-${p.id}`,
+      entidadId: p.id,
       tipo: 'Pop-up',
       titulo: p.titulo,
       estado: p.estado,

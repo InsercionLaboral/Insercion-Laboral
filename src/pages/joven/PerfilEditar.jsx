@@ -20,6 +20,7 @@ export function PerfilEditar() {
 
   const [cargando, setCargando] = useState(true)
   const [estado, setEstado] = useState('borrador')
+  const [motivo, setMotivo] = useState(null)
   const [f, setF] = useState({
     formacion: '',
     presentacion: '',
@@ -43,6 +44,7 @@ export function PerfilEditar() {
       .then(({ perfil, habilidadIds }) => {
         if (perfil) {
           setEstado(perfil.estado_revision)
+          setMotivo(perfil.motivo_revision ?? null)
           setF({
             formacion: perfil.formacion ?? '',
             presentacion: perfil.presentacion ?? '',
@@ -131,6 +133,14 @@ export function PerfilEditar() {
     <div className="py-2">
       <h1 className="font-display text-2xl font-bold text-tinta">Arma tu portafolio</h1>
       <p className="mb-5 mt-1 font-body text-sm text-tenue">Esto es lo que verán los empresarios.</p>
+
+      {estado === 'rechazado' && motivo && (
+        <div className="mb-5 rounded-2xl border border-joven/30 bg-joven/10 p-4">
+          <p className="font-body text-[13px] font-bold text-joven">Tu perfil necesita cambios</p>
+          <p className="mt-1 font-body text-[14px] text-tinta">{motivo}</p>
+          <p className="mt-2 font-body text-xs text-tenue">Haz los ajustes y toca “Guardar y enviar a revisión”.</p>
+        </div>
+      )}
 
       {/* Foto + nombre */}
       <div className="mb-5 flex items-center gap-4">

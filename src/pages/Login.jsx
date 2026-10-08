@@ -106,6 +106,12 @@ export function Login() {
             </p>
           )}
 
+          <p className="mt-3 text-right">
+            <Link to="/recuperar" className="font-body text-[13px] font-bold text-empresario">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </p>
+
           <Boton variante="empresario" type="submit" className="mt-6" cargando={enviando}>
             Iniciar sesión
           </Boton>

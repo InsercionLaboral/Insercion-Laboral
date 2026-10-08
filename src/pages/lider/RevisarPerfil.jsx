@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthProvider.jsx'
 import { Cargando } from '../../components/Cargando.jsx'
+import { DialogoMotivo } from '../../components/DialogoMotivo.jsx'
 import { FichaPerfil } from '../../components/FichaPerfil.jsx'
 import { useProyectos } from '../../hooks/useProyectos.js'
 import { getPerfilPublico } from '../../lib/perfil.js'
@@ -19,6 +20,7 @@ export function RevisarPerfil() {
   const [cargando, setCargando] = useState(true)
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState(null)
+  const [pidiendoMotivo, setPidiendoMotivo] = useState(false)
 
   useEffect(() => {
     Promise.all([getPerfilPublico(usuarioId), getPerfilPorUsuario(usuarioId)])
@@ -30,11 +32,11 @@ export function RevisarPerfil() {
       .finally(() => setCargando(false))
   }, [usuarioId])
 
-  async function decidir(aprobado) {
+  async function decidir(aprobado, motivo = null) {
     setOcupado(true)
     setError(null)
     try {
-      await revisarPerfil({ perfilId: perfil.id, aprobado, revisorId: usuario.id })
+      await revisarPerfil({ perfilId: perfil.id, aprobado, revisorId: usuario.id, motivo })
       navigate('/lider', { replace: true })
     } catch (e) {
       setError(e.message)
@@ -56,6 +58,17 @@ export function RevisarPerfil() {
 
   return (
     <div className="py-2">
+      <DialogoMotivo
+        abierto={pidiendoMotivo}
+        titulo={`Pedir cambios a ${ficha.nombre}`}
+        ayuda="Cuéntale al joven qué debe corregir. Lo verá en su perfil y en sus avisos."
+        ocupado={ocupado}
+        onCancelar={() => setPidiendoMotivo(false)}
+        onConfirmar={(motivo) => {
+          setPidiendoMotivo(false)
+          decidir(false, motivo)
+        }}
+      />
       <Link to="/lider" className="mb-3 inline-block font-body text-sm font-bold text-empresario">
         ← Aprobaciones
       </Link>
@@ -71,7 +84,7 @@ export function RevisarPerfil() {
       {perfil.estado_revision === 'en_revision' ? (
         <div className="mt-4 flex gap-2.5">
           <button
-            onClick={() => decidir(false)}
+            onClick={() => setPidiendoMotivo(true)}
             disabled={ocupado}
             className="flex-1 rounded-xl border border-[#F1B5B5] bg-white py-3 font-body text-[14px] font-bold text-[#C23B3B] disabled:opacity-50"
           >

@@ -31,7 +31,7 @@ const ESTADO_INFO = {
   },
   rechazado: {
     titulo: 'Tu perfil necesita cambios',
-    texto: 'Revisa las observaciones, ajústalo y envíalo de nuevo.',
+    texto: 'Lee el comentario del equipo, ajusta tu perfil y envíalo de nuevo.',
     clase: 'bg-joven/15 text-joven',
     etiqueta: 'Necesita cambios',
   },
@@ -83,6 +83,11 @@ export function JovenHome() {
         </span>
         <h2 className="mt-3 font-display text-lg font-bold text-tinta">{info.titulo}</h2>
         <p className="mt-1 font-body text-sm text-tenue">{info.texto}</p>
+        {clave === 'rechazado' && perfil?.motivo_revision && (
+          <p className="mt-3 rounded-xl bg-joven/10 px-3 py-2.5 font-body text-[13.5px] text-tinta">
+            <span className="font-bold">El equipo te dice:</span> {perfil.motivo_revision}
+          </p>
+        )}
 
         <div className="mt-4 flex flex-wrap gap-3">
           <Link

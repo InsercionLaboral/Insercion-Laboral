@@ -4,6 +4,9 @@ const ESTADOS = {
   aprobado: { texto: '✓ Publicado', clase: 'bg-tinta text-lima' },
   rechazado: { texto: 'Rechazado', clase: 'bg-joven/15 text-joven' },
   cerrado: { texto: 'Cerrado', clase: 'bg-borde text-tenue' },
+  // Perfiles
+  en_revision: { texto: 'En revisión', clase: 'bg-naranja/20 text-[#B96C00]' },
+  borrador: { texto: 'Borrador', clase: 'bg-borde text-tenue' },
   // Postulaciones
   enviada: { texto: 'Enviada', clase: 'bg-empresario/12 text-[#0a7c84]' },
   vista: { texto: 'Vista', clase: 'bg-borde text-tenue' },

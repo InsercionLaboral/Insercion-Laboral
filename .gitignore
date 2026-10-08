@@ -33,3 +33,6 @@ Thumbs.db
 
 # Insumos con datos personales de pruebas (no subir)
 docs/ensayos*.docx
+
+# SQL con contraseñas para correr a mano en Supabase (no subir)
+supabase/privado/
