@@ -1,18 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthProvider.jsx'
 import { Campo } from '../../components/ui/Campo.jsx'
-import { Selector } from '../../components/ui/Selector.jsx'
+import { SelectorMunicipio } from '../../components/SelectorMunicipio.jsx'
 import { Boton } from '../../components/ui/Boton.jsx'
 import { SelectorHabilidades } from '../../components/SelectorHabilidades.jsx'
 import { Cargando } from '../../components/Cargando.jsx'
-import { useMunicipios } from '../../hooks/useMunicipios.js'
 import { crearPopup, getMiEmpresa } from '../../lib/popups.js'
 
 export function NuevoPopup() {
   const { usuario } = useAuth()
   const navigate = useNavigate()
-  const { municipios } = useMunicipios()
 
   const [empresa, setEmpresa] = useState(null)
   const [cargando, setCargando] = useState(true)
@@ -32,11 +30,6 @@ export function NuevoPopup() {
     fecha_cierre: '',
   })
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }))
-
-  const opcMunicipio = useMemo(
-    () => municipios.map((m) => ({ value: m.id, label: m.nombre })),
-    [municipios],
-  )
 
   useEffect(() => {
     if (!usuario) return
@@ -119,10 +112,7 @@ export function NuevoPopup() {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Selector
-            etiqueta="Municipio"
-            icono="📍"
-            opciones={opcMunicipio}
+          <SelectorMunicipio
             value={f.municipio_id}
             onChange={(e) => set('municipio_id', e.target.value)}
             placeholder="Municipio"

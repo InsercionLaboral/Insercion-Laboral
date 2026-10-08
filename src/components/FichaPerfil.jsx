@@ -1,6 +1,7 @@
 import { Avatar } from './ui/Avatar.jsx'
 import { Chip } from './ui/Chip.jsx'
 import { construirEnlaceWa } from '../lib/whatsapp.js'
+import { enlaceSeguro } from '../lib/proyectos.js'
 
 const ETIQUETA_ESTADO = {
   borrador: { texto: 'Borrador', clase: 'bg-borde text-tenue' },
@@ -14,7 +15,7 @@ const ETIQUETA_ESTADO = {
  * `perfil` (de obtener_perfil_publico). `vistaEmpresario` muestra el banner de
  * contexto y el CTA de contacto por WhatsApp.
  */
-export function FichaPerfil({ perfil, vistaEmpresario = false }) {
+export function FichaPerfil({ perfil, proyectos = [], vistaEmpresario = false }) {
   const habilidades = Array.isArray(perfil.habilidades) ? perfil.habilidades : []
   const estado = ETIQUETA_ESTADO[perfil.estado_revision] ?? ETIQUETA_ESTADO.borrador
   const enlaceWa = construirEnlaceWa(
@@ -85,6 +86,46 @@ export function FichaPerfil({ perfil, vistaEmpresario = false }) {
                   {h.nombre}
                 </Chip>
               ))}
+            </div>
+          </section>
+        )}
+
+        {proyectos.length > 0 && (
+          <section className="mb-5">
+            <h2 className="mb-2.5 font-display text-[15px] font-semibold text-tinta">
+              Proyectos destacados
+            </h2>
+            <div className="space-y-2.5">
+              {proyectos.map((pr) => {
+                const enlace = enlaceSeguro(pr.enlace)
+                return (
+                  <div key={pr.id} className="flex items-start gap-3 rounded-2xl border border-borde bg-white p-4">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-naranja/15 text-xl">
+                      ⭐
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-display text-[14.5px] font-semibold leading-snug text-tinta">
+                        {pr.titulo}
+                      </p>
+                      {pr.descripcion && (
+                        <p className="mt-1 font-body text-[13.5px] leading-snug text-[#3f4133]">
+                          {pr.descripcion}
+                        </p>
+                      )}
+                      {enlace && (
+                        <a
+                          href={enlace}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1.5 inline-block font-body text-[12.5px] font-bold text-empresario"
+                        >
+                          Ver proyecto ↗
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </section>
         )}

@@ -35,7 +35,9 @@ export async function subirFoto(authId, file) {
   const ruta = `${authId}/perfil-${Date.now()}.webp`
   const { error } = await supabase.storage
     .from(BUCKET_FOTOS)
-    .upload(ruta, blob, { contentType: 'image/webp', upsert: true })
+    // Sin upsert: cada foto lleva la hora en el nombre (nunca choca) y el modo
+    // upsert exigiría un permiso de lectura que el bucket no concede a propósito.
+    .upload(ruta, blob, { contentType: 'image/webp', upsert: false })
   if (error) throw new Error(error.message)
   const { data } = supabase.storage.from(BUCKET_FOTOS).getPublicUrl(ruta)
   return data.publicUrl

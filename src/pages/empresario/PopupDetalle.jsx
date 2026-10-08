@@ -6,6 +6,7 @@ import { Chip } from '../../components/ui/Chip.jsx'
 import { EstadoBadge } from '../../components/ui/EstadoBadge.jsx'
 import { rangoFechas } from '../../lib/fechas.js'
 import { construirEnlaceWa } from '../../lib/whatsapp.js'
+import { deshacerContratacion, registrarContratacion } from '../../lib/contrataciones.js'
 import {
   actualizarEstadoPostulacion,
   cerrarPopup,
@@ -26,6 +27,7 @@ export function PopupDetalle() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
   const [ocupado, setOcupado] = useState(null)
+  const [aviso, setAviso] = useState(null)
 
   const cargar = useCallback(async () => {
     const [p, lista] = await Promise.all([getPopup(popupId), listarPostulantes(popupId)])
@@ -39,11 +41,26 @@ export function PopupDetalle() {
       .finally(() => setCargando(false))
   }, [cargar])
 
-  async function cambiarEstado(postulacionId, estado) {
+  async function cambiarEstado(postulante, estado) {
+    const postulacionId = postulante.postulacion_id
+    if (
+      postulante.estado === 'contratado' &&
+      !window.confirm(
+        `${postulante.nombre} figura como contratado(a). Si cambias su estado se borrará el registro de contratación. ¿Continuar?`,
+      )
+    )
+      return
     setOcupado(postulacionId)
     setError(null)
+    setAviso(null)
     try {
       await actualizarEstadoPostulacion(postulacionId, estado)
+      if (estado === 'contratado') {
+        await registrarContratacion(postulacionId)
+        setAviso(`${postulante.nombre} quedó registrado(a) como contratado(a). Haz su seguimiento en la pestaña "Contratados".`)
+      } else if (postulante.estado === 'contratado') {
+        await deshacerContratacion(postulacionId)
+      }
       setPostulantes((prev) =>
         prev.map((p) => (p.postulacion_id === postulacionId ? { ...p, estado } : p)),
       )
@@ -137,6 +154,11 @@ export function PopupDetalle() {
           {error}
         </p>
       )}
+      {aviso && (
+        <p className="mt-3 rounded-xl bg-lima/30 px-3 py-2 font-body text-[13px] font-semibold text-[#5d6c17]">
+          {aviso}
+        </p>
+      )}
 
       {/* Postulantes */}
       <h2 className="mb-3 mt-6 font-display text-lg font-bold text-tinta">
@@ -198,7 +220,7 @@ export function PopupDetalle() {
                   {ACCIONES.filter((a) => a.estado !== p.estado).map((a) => (
                     <button
                       key={a.estado}
-                      onClick={() => cambiarEstado(p.postulacion_id, a.estado)}
+                      onClick={() => cambiarEstado(p, a.estado)}
                       disabled={ocupado === p.postulacion_id}
                       className={`rounded-full px-3 py-1.5 font-body text-[12px] font-bold disabled:opacity-50 ${a.clase}`}
                     >

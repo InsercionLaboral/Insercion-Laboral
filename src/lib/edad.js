@@ -1,7 +1,9 @@
 // Utilidades de edad para el registro (Habeas Data / menores de edad).
 
 export const EDAD_MINIMA = 16
-export const EDAD_MAXIMA = 28
+// Tope de edad del programa. Ampliado de 28 a 35 por observación de las pruebas
+// con usuarios; si cambia de nuevo, basta con editar esta constante.
+export const EDAD_MAXIMA = 35
 
 /** Edad cumplida a partir de una fecha de nacimiento (YYYY-MM-DD). */
 export function calcularEdad(fechaNacimiento) {
@@ -21,7 +23,7 @@ export function esMenorDeEdad(edad) {
 }
 
 /**
- * Valida el rango de edad permitido para jóvenes (16-28).
+ * Valida el rango de edad permitido para jóvenes (EDAD_MINIMA–EDAD_MAXIMA).
  * Devuelve un mensaje de error o null si es válida.
  */
 export function validarEdadJoven(fechaNacimiento) {

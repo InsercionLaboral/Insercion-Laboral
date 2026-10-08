@@ -7,6 +7,11 @@ import { Avatar } from '../../components/ui/Avatar.jsx'
 import { SelectorHabilidades } from '../../components/SelectorHabilidades.jsx'
 import { Cargando } from '../../components/Cargando.jsx'
 import { getMiPerfil, guardarPerfil, subirFoto } from '../../lib/perfil.js'
+import {
+  MAX_PROYECTOS,
+  guardarProyectos,
+  listarProyectosDeUsuario,
+} from '../../lib/proyectos.js'
 
 export function PerfilEditar() {
   const { usuario, session } = useAuth()
@@ -23,6 +28,8 @@ export function PerfilEditar() {
     foto_url: '',
   })
   const [habilidadIds, setHabilidadIds] = useState([])
+  const [proyectos, setProyectos] = useState([])
+  const [proyectosDisponibles, setProyectosDisponibles] = useState(false)
   const [subiendoFoto, setSubiendoFoto] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState(null)
@@ -45,6 +52,16 @@ export function PerfilEditar() {
           })
           setHabilidadIds(habilidadIds)
         }
+        return listarProyectosDeUsuario(usuario.id).then(({ disponible, items }) => {
+          setProyectosDisponibles(disponible)
+          setProyectos(
+            items.map(({ titulo, descripcion, enlace }) => ({
+              titulo,
+              descripcion: descripcion ?? '',
+              enlace: enlace ?? '',
+            })),
+          )
+        })
       })
       .catch((e) => setError(e.message))
       .finally(() => setCargando(false))
@@ -66,9 +83,22 @@ export function PerfilEditar() {
     }
   }
 
+  const cambiarProyecto = (i, campo, valor) =>
+    setProyectos((prev) => prev.map((p, j) => (j === i ? { ...p, [campo]: valor } : p)))
+  const quitarProyecto = (i) => setProyectos((prev) => prev.filter((_, j) => j !== i))
+  const agregarProyecto = () =>
+    setProyectos((prev) =>
+      prev.length >= MAX_PROYECTOS ? prev : [...prev, { titulo: '', descripcion: '', enlace: '' }],
+    )
+
   async function guardar(enviarRevision) {
     setError(null)
     setOk(null)
+    const proyectosLlenos = proyectos.filter(
+      (p) => p.titulo.trim() || p.descripcion.trim() || p.enlace.trim(),
+    )
+    if (proyectosLlenos.some((p) => p.titulo.trim().length < 3))
+      return setError('Cada proyecto necesita un título (mínimo 3 letras).')
     if (enviarRevision) {
       if (!f.presentacion.trim()) return setError('Escribe una breve presentación antes de enviar.')
       if (habilidadIds.length === 0) return setError('Agrega al menos una habilidad antes de enviar.')
@@ -81,6 +111,7 @@ export function PerfilEditar() {
         habilidadIds,
         enviarRevision,
       })
+      if (proyectosDisponibles) await guardarProyectos(perfil.id, proyectosLlenos)
       setEstado(perfil.estado_revision)
       if (enviarRevision) {
         navigate('/joven', { replace: true })
@@ -152,6 +183,67 @@ export function PerfilEditar() {
           <label className="mb-2 block font-body text-[13.5px] font-bold text-tinta">Habilidades</label>
           <SelectorHabilidades seleccionadas={habilidadIds} onCambio={setHabilidadIds} />
         </div>
+
+        {proyectosDisponibles && (
+          <div>
+            <label className="mb-1 block font-body text-[13.5px] font-bold text-tinta">
+              Proyectos destacados
+            </label>
+            <p className="mb-2 font-body text-xs text-tenue">
+              Muestra hasta {MAX_PROYECTOS} trabajos o proyectos de los que te sientas orgulloso.
+            </p>
+            <div className="space-y-3">
+              {proyectos.map((p, i) => (
+                <div key={i} className="rounded-2xl border border-borde bg-white p-3.5">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="font-body text-xs font-bold text-tenue">Proyecto {i + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => quitarProyecto(i)}
+                      className="font-body text-xs font-bold text-joven"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                  <input
+                    value={p.titulo}
+                    onChange={(e) => cambiarProyecto(i, 'titulo', e.target.value)}
+                    maxLength={120}
+                    placeholder="Nombre del proyecto"
+                    aria-label={`Nombre del proyecto ${i + 1}`}
+                    className="mb-2 w-full rounded-xl border border-borde bg-fondo/50 px-3 py-2.5 font-body text-[14px] text-tinta outline-none"
+                  />
+                  <textarea
+                    value={p.descripcion}
+                    onChange={(e) => cambiarProyecto(i, 'descripcion', e.target.value)}
+                    rows={2}
+                    maxLength={600}
+                    placeholder="¿Qué hiciste y qué lograste?"
+                    aria-label={`Descripción del proyecto ${i + 1}`}
+                    className="mb-2 w-full rounded-xl border border-borde bg-fondo/50 px-3 py-2.5 font-body text-[14px] text-tinta outline-none"
+                  />
+                  <input
+                    value={p.enlace}
+                    onChange={(e) => cambiarProyecto(i, 'enlace', e.target.value)}
+                    maxLength={500}
+                    placeholder="Enlace (opcional)"
+                    aria-label={`Enlace del proyecto ${i + 1}`}
+                    className="w-full rounded-xl border border-borde bg-fondo/50 px-3 py-2.5 font-body text-[14px] text-tinta outline-none"
+                  />
+                </div>
+              ))}
+            </div>
+            {proyectos.length < MAX_PROYECTOS && (
+              <button
+                type="button"
+                onClick={agregarProyecto}
+                className="mt-2.5 w-full rounded-2xl border border-dashed border-tenue/50 bg-white/60 py-3 font-body text-[13.5px] font-bold text-tinta"
+              >
+                + Agregar un proyecto
+              </button>
+            )}
+          </div>
+        )}
 
         <Campo
           etiqueta="WhatsApp de contacto"

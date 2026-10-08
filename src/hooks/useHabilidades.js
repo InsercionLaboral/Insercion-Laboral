@@ -1,43 +1,33 @@
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { supabase } from '../lib/supabase.js'
+import { useCatalogo } from './useCatalogo.js'
+
+async function cargarHabilidades() {
+  const { data, error } = await supabase
+    .from('habilidades')
+    .select('id, nombre, categoria')
+    .order('categoria')
+    .order('nombre')
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
 
 /**
- * Carga el catálogo de habilidades (lectura pública por RLS), agrupado por
- * categoría para el selector del perfil.
+ * Catálogo de habilidades (lectura pública por RLS), agrupado por categoría
+ * para el selector del perfil.
  */
 export function useHabilidades() {
-  const [habilidades, setHabilidades] = useState([])
-  const [porCategoria, setPorCategoria] = useState([])
-  const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState(null)
+  const { datos, cargando, error, reintentar } = useCatalogo('catalogo:habilidades', cargarHabilidades)
 
-  useEffect(() => {
-    let activo = true
-    supabase
-      .from('habilidades')
-      .select('id, nombre, categoria')
-      .order('categoria')
-      .order('nombre')
-      .then(({ data, error }) => {
-        if (!activo) return
-        if (error) {
-          setError(error.message)
-        } else {
-          setHabilidades(data ?? [])
-          const grupos = new Map()
-          for (const h of data ?? []) {
-            const cat = h.categoria ?? 'Otras'
-            if (!grupos.has(cat)) grupos.set(cat, [])
-            grupos.get(cat).push(h)
-          }
-          setPorCategoria([...grupos.entries()].map(([categoria, items]) => ({ categoria, items })))
-        }
-        setCargando(false)
-      })
-    return () => {
-      activo = false
+  const porCategoria = useMemo(() => {
+    const grupos = new Map()
+    for (const h of datos) {
+      const cat = h.categoria ?? 'Otras'
+      if (!grupos.has(cat)) grupos.set(cat, [])
+      grupos.get(cat).push(h)
     }
-  }, [])
+    return [...grupos.entries()].map(([categoria, items]) => ({ categoria, items }))
+  }, [datos])
 
-  return { habilidades, porCategoria, cargando, error }
+  return { habilidades: datos, porCategoria, cargando, error, reintentar }
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Cargando } from '../../components/Cargando.jsx'
 import { FichaPerfil } from '../../components/FichaPerfil.jsx'
+import { useProyectos } from '../../hooks/useProyectos.js'
 import { getPerfilPublico } from '../../lib/perfil.js'
 
 /** Ficha pública de un joven, vista por el empresario (con contacto wa.me). */
@@ -10,6 +11,7 @@ export function PerfilTalento() {
   const [cargando, setCargando] = useState(true)
   const [perfil, setPerfil] = useState(null)
   const [error, setError] = useState(null)
+  const proyectos = useProyectos(usuarioId)
 
   useEffect(() => {
     setCargando(true)
@@ -40,7 +42,7 @@ export function PerfilTalento() {
       <Link to="/empresario" className="mb-3 inline-block font-body text-sm font-bold text-empresario">
         ← Volver al directorio
       </Link>
-      <FichaPerfil perfil={perfil} vistaEmpresario />
+      <FichaPerfil perfil={perfil} proyectos={proyectos} vistaEmpresario />
     </div>
   )
 }

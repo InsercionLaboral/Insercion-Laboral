@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado actual del repositorio
 
-**Fases 0–4 completadas** (cimientos, registro con Habeas Data + onboarding, perfil del joven + directorio del empresario, pop-ups y postulaciones, panel de aprobación del líder). Pendientes: contrataciones y seguimiento, dashboard KPI + recursos, y lanzamiento (fases 5–7; hoy `/admin`, `/terminos` y `/privacidad` son `Placeholder`). La base de datos del proyecto Supabase dedicado tiene el esquema, los catálogos y los 27 municipios aplicados — ver [fases-implementacion-insercion-laboral.md](fases-implementacion-insercion-laboral.md).
+**Fases 0–6 implementadas** (cimientos, registro con Habeas Data + onboarding, perfil del joven + directorio, pop-ups y postulaciones, panel de aprobación, contrataciones + seguimiento, dashboard KPI + recursos educativos + gestión de usuarios). **Fase 7 (lanzamiento) abierta:** validación jurídica de los textos legales (`TEXTOS_LEGALES_VALIDADOS` en `src/config.js` sigue en `false`), correo oficial de contacto (`VITE_CORREO_CONTACTO`), reemplazar cuentas de prueba por usuarios oficiales y **aplicar las migraciones de `supabase/migrations/` al proyecto** (si no están aplicadas: la sección de proyectos destacados se oculta sola y la base sigue sin el endurecimiento de seguridad). Hoja de ruta: [fases-implementacion-insercion-laboral.md](fases-implementacion-insercion-laboral.md).
 
 ### Comandos
 
@@ -15,6 +15,8 @@ Desde la raíz del proyecto:
 - `npm run build` — build de producción a `dist/`.
 - `npm run preview` — servir el build localmente.
 - `npm run lint` — ESLint (`eslint .`).
+- Si `npm run build`/`lint` fallan con módulos faltantes, `node_modules` quedó corrupto: `rm -rf node_modules && npm ci`.
+- Pruebas de seguridad de la BD (contra un PostgreSQL **local**, no Supabase): `PGHOST=127.0.0.1 PGPORT=<puerto> bash supabase/tests/run.sh` — ver `supabase/tests/`. Debe terminar sin líneas `FALLA`. No hay tests de frontend.
 
 Requiere un `.env` (copiar de `.env.example`) con `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`. No hay tests configurados todavía — no inventes un comando de test.
 
@@ -25,9 +27,12 @@ Requiere un `.env` (copiar de `.env.example`) con `VITE_SUPABASE_URL` y `VITE_SU
 - `src/lib/supabase.js` — cliente Supabase (lee las env `VITE_*`). `src/lib/database.types.ts` — tipos generados del esquema (regenerar tras cambios en la BD; referencia aunque la app sea JSX). Nota: el código usa columnas como `telefono`, `cupos`, `pago_estimado`, `municipio_id` en popups, `updated_at` que pueden haberse añadido en migraciones posteriores al `.sql` base; ante duda, consulta la BD real (MCP, proyecto `ofcnxaxqqcpbahkwnljk`) y no solo el archivo.
 - `src/auth/AuthProvider.jsx` — expone `session`, `usuario` (fila de `public.usuarios` con el `rol`), `loading`, `signOut` vía `useAuth()`. `src/auth/ProtectedRoute.jsx` — protege por sesión y por rol (redirige al home del rol real si no coincide).
 - `src/constants/roles.js` — `ROLES` y `HOME_POR_ROL` (coinciden con el check `usuarios.rol`).
-- `src/routes/index.jsx` — todas las rutas en un solo `createBrowserRouter`: públicas envueltas en `SoloInvitados`, áreas `/joven`, `/empresario`, `/lider` (acepta lider y admin) y `/admin` envueltas en `ProtectedRoute roles={[...]}` + `AppLayout`. Lo no implementado usa `pages/Placeholder.jsx`. Páginas en `src/pages/<rol>/`.
-- `src/lib/*.js` — capa de acceso a datos (una función por consulta Supabase, sin lógica en las páginas): `aprobaciones.js`, `popups.js`, `perfil.js`, `auth.js`, `whatsapp.js` (enlaces `wa.me`), `imagen.js` (comprime a WebP en el navegador antes de subir a Storage), `edad.js`, `fechas.js`. Estos módulos normalizan los embeds anidados de PostgREST a objetos planos. Gotcha: `perfiles_joven` tiene dos FK hacia `usuarios` (`usuario_id`, `revisado_por`), así que los embeds deben nombrar la FK (`usuarios!perfiles_joven_usuario_id_fkey`).
-- `src/components/` (`ui/` = primitivas: Boton, Campo, Chip, etc.), `src/hooks/` (`useHabilidades`, `useMunicipios`), `src/layouts/` (`AppLayout`, `AuthShell`).
+- `src/routes/index.jsx` — todas las rutas en un solo `createBrowserRouter`, con **carga diferida** por pantalla (helper `perezoso`): públicas bajo `SoloInvitados`; áreas `/joven`, `/empresario`, `/lider` (acepta lider y admin) y `/admin` bajo `ProtectedRoute roles={[...]}` + `AppLayout`. Páginas en `src/pages/<rol>/`. `AppLayout` define el menú inferior por rol y un ancho mayor para lider/admin.
+- `src/lib/*.js` — capa de datos (una función por consulta Supabase, sin lógica de datos en las páginas): `perfil`, `popups`, `contrataciones` (registrar/deshacer contratación, seguimiento, permanencia), `recursos`, `kpi` (indicadores + CSV), `usuarios`, `proyectos`, `aprobaciones`, `auth`, `whatsapp` (enlaces `wa.me`), `imagen` (WebP en el navegador), `edad` (`EDAD_MAXIMA`, hoy 35), `fechas`. Normalizan los embeds de PostgREST. Gotcha: `perfiles_joven` tiene dos FK hacia `usuarios` (`usuario_id`, `revisado_por`): los embeds deben nombrar la FK (`usuarios!perfiles_joven_usuario_id_fkey`).
+- `src/hooks/useCatalogo.js` — base de `useMunicipios`/`useHabilidades`: reintenta con espera y guarda copia en `localStorage` (requisito de conexión inestable). `SelectorMunicipio` muestra "Cargando…" o aviso con "Reintentar".
+- Reporte PDF del dashboard = impresión del navegador (`window.print()`) con estilos `@media print` en `index.css` (clases `no-imprimir` / `solo-impresion`); sin librerías de PDF.
+- `src/config.js` — correo de contacto y marca de textos legales validados. Páginas legales: `pages/Legal.jsx`.
+- `src/components/` (`ui/` = primitivas), `src/layouts/` (`AppLayout`, `AuthShell`).
 - `vercel.json` — rewrite SPA a `/index.html`.
 - `public/assets/logo.jpg` — logo servido por Vite (copia del de la raíz).
 
@@ -45,7 +50,9 @@ Contenido de planeación/diseño (insumos, no parte del build):
 
 ### Supabase: proyecto dedicado
 
-El proyecto correcto es **`App Insercion Laboral`** — id `ofcnxaxqqcpbahkwnljk`, región `sa-east-1`, accesible vía MCP. Ya tiene aplicado el esquema completo (12 tablas + vista KPI), el catálogo de 42 habilidades y los 27 municipios de Caldas. Los advisories de seguridad están en cero (RLS en todas las tablas incluidos catálogos, vista KPI con `security_invoker = on`, funciones con `search_path` fijo). ⚠️ La misma conexión MCP también expone `unidaddecalidadmanizales-dev's Project`, que es de **otra plataforma no relacionada** (tablas `procesos`, `indicadores`, `visitas`, etc. — sistema de seguimiento de calidad). **Nunca apliques nada de esta plataforma contra ese proyecto**; usa siempre `ofcnxaxqqcpbahkwnljk`.
+El proyecto correcto es **`App Insercion Laboral`** — id `ofcnxaxqqcpbahkwnljk`, región `sa-east-1`, accesible vía MCP *solo si la conexión MCP está autorizada con la cuenta/organización que lo contiene* (en oct-2026 la conexión llegó a ver únicamente otros proyectos: verifica con `list_projects` antes de asumir acceso; sin acceso, deja los cambios como archivos en `supabase/migrations/` y avisa). Ya tiene aplicado el esquema completo (12 tablas + vista KPI), el catálogo de 42 habilidades y los 27 municipios de Caldas. Los advisories de seguridad están en cero (RLS en todas las tablas incluidos catálogos, vista KPI con `security_invoker = on`, funciones con `search_path` fijo). ⚠️ La misma conexión MCP también expone `unidaddecalidadmanizales-dev's Project`, que es de **otra plataforma no relacionada** (tablas `procesos`, `indicadores`, `visitas`, etc. — sistema de seguimiento de calidad). **Nunca apliques nada de esta plataforma contra ese proyecto**; usa siempre `ofcnxaxqqcpbahkwnljk`.
+
+**Seguridad (lecciones de la revisión de oct-2026):** la RLS sola no basta. Cualquier persona con sesión puede llamar la API directamente, así que además de las políticas hay **triggers `proteger_*`** (sección 14 del esquema / migración `20261007000100`) que impiden: registrarse con rol `lider`/`admin` (`handle_new_user` solo acepta `joven`/`empresario`), cambiarse el propio `rol`/`estado`, auto-aprobar perfiles o pop-ups (solo lider/admin pasan a `aprobado`/`rechazado`; editar contenido aprobado lo devuelve a revisión), y crear postulaciones con estado forzado o a pop-ups no abiertos. Las lecturas de `perfiles_joven`, `popups` y sus tablas puente son `to authenticated` (antes un visitante anónimo podía leer perfiles con teléfono). Toda tabla/columna nueva con estado de moderación necesita su trigger, y se prueba en `supabase/tests/`. Otros gotchas: subir fotos con `upsert: false` (el bucket no tiene política de lectura); no llamar `supabase.auth.signOut()` con `await` dentro de `onAuthStateChange`.
 
 Tras cualquier cambio de esquema (DDL): correr `get_advisors` y regenerar `src/lib/database.types.ts`. Si editas `schema-supabase-insercion-laboral.sql`, mantenlo reejecutable de principio a fin (las policies que usan `auth_rol()` deben ir después de definir esa función — ver sección 2b).
 
@@ -62,7 +69,7 @@ Definida en la sección 6 del documento de planeación (Fase 0 ya montó el anda
 
 Cuatro roles: `joven`, `empresario`, `lider` (de área), `admin`, como check constraint en `usuarios.rol`, tabla vinculada a `auth.users` de Supabase vía `auth_id`. El control de acceso vive en políticas RLS por tabla (no en la capa de aplicación) — cada tabla nueva que se agregue debe traer su propio `enable row level security` + políticas, siguiendo el patrón de `schema-supabase-insercion-laboral.sql`.
 
-Tablas reales definidas en `schema-supabase-insercion-laboral.sql` (fuente autoritativa; difiere ligeramente del boceto de la sección 4 del documento de planeación — por ejemplo, `habilidades_requeridas[]` en `popups` se implementó como tabla puente `popup_habilidades`, y `usuarios` tiene columnas adicionales de Habeas Data):
+Tablas reales definidas en `schema-supabase-insercion-laboral.sql` (más `proyectos_joven (id, joven_id→perfiles_joven, titulo, descripcion, enlace, anio, orden)`, "proyectos destacados" del portafolio, hasta 3 por joven) (fuente autoritativa; difiere ligeramente del boceto de la sección 4 del documento de planeación — por ejemplo, `habilidades_requeridas[]` en `popups` se implementó como tabla puente `popup_habilidades`, y `usuarios` tiene columnas adicionales de Habeas Data):
 
 ```
 municipios          (id, nombre)

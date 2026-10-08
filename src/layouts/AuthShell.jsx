@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 /**
  * Contenedor de las pantallas de acceso. En móvil es una sola columna; en
  * desktop es split-screen (panel de marca + formulario), como la pantalla 04
@@ -39,6 +41,10 @@ export function AuthShell({ acento = 'joven', children }) {
       <main className="flex flex-1 flex-col bg-fondo px-6 py-8 md:items-center md:justify-center">
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col md:flex-none">
           {children}
+          <p className="mt-8 text-center font-body text-[11.5px] text-tenue">
+            <Link to="/terminos" className="font-bold">Términos de uso</Link> ·{' '}
+            <Link to="/privacidad" className="font-bold">Privacidad</Link>
+          </p>
         </div>
       </main>
     </div>

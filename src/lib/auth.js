@@ -6,6 +6,10 @@ import { supabase } from './supabase.js'
 function traducirError(mensaje) {
   if (!mensaje) return 'Ocurrió un error. Intenta de nuevo.'
   const m = mensaje.toLowerCase()
+  if (m.includes('failed to fetch') || m.includes('networkerror') || m.includes('load failed'))
+    return 'No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.'
+  if (m.includes('rate limit') || m.includes('too many requests'))
+    return 'Hiciste muchos intentos seguidos. Espera unos minutos e inténtalo de nuevo.'
   if (m.includes('invalid login credentials')) return 'Correo o contraseña incorrectos.'
   if (m.includes('user already registered') || m.includes('already been registered'))
     return 'Ya existe una cuenta con este correo.'

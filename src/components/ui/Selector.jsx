@@ -6,6 +6,7 @@ export function Selector({
   etiqueta,
   icono,
   error,
+  ayuda,
   id,
   opciones = [],
   placeholder = 'Selecciona…',
@@ -41,7 +42,11 @@ export function Selector({
         </select>
         <span className="text-xs text-tenue">▾</span>
       </div>
-      {error && <p className="mt-1 font-body text-xs font-semibold text-joven">{error}</p>}
+      {error ? (
+        <p className="mt-1 font-body text-xs font-semibold text-joven">{error}</p>
+      ) : ayuda ? (
+        <p className="mt-1 font-body text-xs text-tenue">{ayuda}</p>
+      ) : null}
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthProvider.jsx'
 import { Cargando } from '../../components/Cargando.jsx'
 import { FichaPerfil } from '../../components/FichaPerfil.jsx'
+import { useProyectos } from '../../hooks/useProyectos.js'
 import { getPerfilPublico } from '../../lib/perfil.js'
 import { getPerfilPorUsuario, revisarPerfil } from '../../lib/aprobaciones.js'
 
@@ -10,6 +11,7 @@ import { getPerfilPorUsuario, revisarPerfil } from '../../lib/aprobaciones.js'
 export function RevisarPerfil() {
   const { usuarioId } = useParams()
   const { usuario } = useAuth()
+  const proyectos = useProyectos(usuarioId)
   const navigate = useNavigate()
 
   const [ficha, setFicha] = useState(null)
@@ -58,7 +60,7 @@ export function RevisarPerfil() {
         ← Aprobaciones
       </Link>
 
-      <FichaPerfil perfil={ficha} vistaEmpresario={false} />
+      <FichaPerfil perfil={ficha} proyectos={proyectos} vistaEmpresario={false} />
 
       {error && (
         <p className="mt-3 rounded-xl bg-joven/10 px-3 py-2 font-body text-[13px] font-semibold text-joven">

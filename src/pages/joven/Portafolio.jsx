@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthProvider.jsx'
 import { Cargando } from '../../components/Cargando.jsx'
 import { FichaPerfil } from '../../components/FichaPerfil.jsx'
+import { useProyectos } from '../../hooks/useProyectos.js'
 import { getPerfilPublico } from '../../lib/perfil.js'
 
 /** Vista previa del portafolio propio del joven (como se verá públicamente). */
@@ -10,6 +11,7 @@ export function Portafolio() {
   const { usuario } = useAuth()
   const [cargando, setCargando] = useState(true)
   const [perfil, setPerfil] = useState(null)
+  const proyectos = useProyectos(usuario?.id)
 
   useEffect(() => {
     if (!usuario) return
@@ -48,7 +50,7 @@ export function Portafolio() {
           Editar
         </Link>
       </div>
-      <FichaPerfil perfil={perfil} vistaEmpresario={false} />
+      <FichaPerfil perfil={perfil} proyectos={proyectos} vistaEmpresario={false} />
     </div>
   )
 }

@@ -12,7 +12,7 @@ Conectar a jóvenes egresados de *La Universidad en el Campo* (línea de Inserci
 
 | Rol | Quién | Acceso |
 |---|---|---|
-| **Joven** | Egresado de La Universidad en el Campo, 16-28 años | Cuenta propia, registro/login |
+| **Joven** | Egresado de La Universidad en el Campo, 16-35 años | Cuenta propia, registro/login |
 | **Empresario** | Empresa local/regional | Cuenta propia, registro/login |
 | **Líder de área** | Persona encargada de actualizar y revisar información | Panel de gestión de contenido (perfiles, pop-ups, recursos) |
 | **Admin (Alejo)** | Administrador de la plataforma | Acceso total: usuarios, roles, configuración, dashboard KPI |

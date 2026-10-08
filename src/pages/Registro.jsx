@@ -1,12 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AuthShell } from '../layouts/AuthShell.jsx'
 import { BarraPasos } from '../components/ui/BarraPasos.jsx'
 import { Campo } from '../components/ui/Campo.jsx'
-import { Selector } from '../components/ui/Selector.jsx'
+import { SelectorMunicipio } from '../components/SelectorMunicipio.jsx'
 import { Casilla } from '../components/ui/Casilla.jsx'
 import { Boton } from '../components/ui/Boton.jsx'
-import { useMunicipios } from '../hooks/useMunicipios.js'
 import { registrarUsuario } from '../lib/auth.js'
 import { ROLES } from '../constants/roles.js'
 import { calcularEdad, esMenorDeEdad, validarEdadJoven } from '../lib/edad.js'
@@ -16,7 +15,6 @@ const emailValido = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
 export function Registro() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
-  const { municipios } = useMunicipios()
 
   const rol = params.get('rol') === ROLES.EMPRESARIO ? ROLES.EMPRESARIO : ROLES.JOVEN
   const esJoven = rol === ROLES.JOVEN
@@ -41,11 +39,6 @@ export function Registro() {
     autorizacionAcudiente: false,
   })
   const set = (k, v) => setF((prev) => ({ ...prev, [k]: v }))
-
-  const opcionesMunicipio = useMemo(
-    () => municipios.map((m) => ({ value: m.id, label: m.nombre })),
-    [municipios],
-  )
 
   const edad = esJoven ? calcularEdad(f.fechaNacimiento) : null
   const menor = esJoven && esMenorDeEdad(edad)
@@ -191,11 +184,7 @@ export function Registro() {
                 }
               />
               {esJoven && (
-                <Selector
-                  id="municipio"
-                  etiqueta="Municipio"
-                  icono="📍"
-                  opciones={opcionesMunicipio}
+                <SelectorMunicipio
                   value={f.municipioId}
                   onChange={(e) => set('municipioId', e.target.value)}
                   error={errores.municipioId}
@@ -279,11 +268,7 @@ export function Registro() {
                     onChange={(e) => set('sector', e.target.value)}
                     placeholder="Turismo, agroindustria…"
                   />
-                  <Selector
-                    id="municipio"
-                    etiqueta="Municipio"
-                    icono="📍"
-                    opciones={opcionesMunicipio}
+                  <SelectorMunicipio
                     value={f.municipioId}
                     onChange={(e) => set('municipioId', e.target.value)}
                     error={errores.municipioId}

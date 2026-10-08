@@ -8,13 +8,11 @@ export function Landing() {
   return (
     <div className="flex min-h-dvh flex-col bg-lima px-6 pb-8 pt-10">
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col">
-        <div className="mt-5 rounded-3xl bg-white p-5 shadow-xl shadow-tinta/20">
-          <img
-            src="/assets/logo.jpg"
-            alt="Inserción Laboral"
-            className="w-full rounded-xl"
-          />
-        </div>
+        <img
+          src="/assets/logo.jpg"
+          alt="Inserción Laboral"
+          className="mt-5 w-full rounded-3xl shadow-xl shadow-tinta/20 ring-4 ring-white/50"
+        />
 
         <div className="mt-auto pt-11">
           <h1 className="font-display text-3xl font-bold leading-tight text-tinta">
@@ -70,6 +68,10 @@ export function Landing() {
             <Link to="/login" className="border-b-2 border-tinta font-bold text-tinta">
               Inicia sesión
             </Link>
+          </p>
+          <p className="mt-4 text-center font-body text-xs text-tinta/60">
+            <Link to="/terminos" className="font-bold">Términos de uso</Link> ·{' '}
+            <Link to="/privacidad" className="font-bold">Privacidad</Link>
           </p>
         </div>
       </div>

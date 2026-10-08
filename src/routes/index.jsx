@@ -1,144 +1,134 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { Outlet, createBrowserRouter } from 'react-router-dom'
 import { ProtectedRoute } from '../auth/ProtectedRoute.jsx'
 import { SoloInvitados } from '../auth/SoloInvitados.jsx'
 import { RedirigirPorRol } from '../auth/RedirigirPorRol.jsx'
 import { AppLayout } from '../layouts/AppLayout.jsx'
+import { Cargando } from '../components/Cargando.jsx'
 import { ROLES } from '../constants/roles.js'
-import { Landing } from '../pages/Landing.jsx'
-import { Registro } from '../pages/Registro.jsx'
-import { Login } from '../pages/Login.jsx'
-import { ConfirmarCorreo } from '../pages/ConfirmarCorreo.jsx'
-import { Onboarding } from '../pages/Onboarding.jsx'
-import { Placeholder } from '../pages/Placeholder.jsx'
-import { JovenHome } from '../pages/joven/JovenHome.jsx'
-import { PerfilEditar } from '../pages/joven/PerfilEditar.jsx'
-import { Portafolio } from '../pages/joven/Portafolio.jsx'
-import { PopupsJoven } from '../pages/joven/PopupsJoven.jsx'
-import { PopupDetalleJoven } from '../pages/joven/PopupDetalleJoven.jsx'
-import { Directorio } from '../pages/empresario/Directorio.jsx'
-import { PerfilTalento } from '../pages/empresario/PerfilTalento.jsx'
-import { MisPopups } from '../pages/empresario/MisPopups.jsx'
-import { NuevoPopup } from '../pages/empresario/NuevoPopup.jsx'
-import { PopupDetalle } from '../pages/empresario/PopupDetalle.jsx'
-import { Aprobaciones } from '../pages/lider/Aprobaciones.jsx'
-import { RevisarPerfil } from '../pages/lider/RevisarPerfil.jsx'
-import { RevisarPopup } from '../pages/lider/RevisarPopup.jsx'
-import { Auditoria } from '../pages/lider/Auditoria.jsx'
 
 /**
- * Rutas. Fase 1: acceso (landing, registro, login, confirmación), onboarding y
- * redirección por rol implementados. Las pantallas por rol siguen siendo
- * placeholders hasta sus fases (ver fases-implementacion-insercion-laboral.md).
+ * Carga diferida por pantalla: el navegador solo descarga el código de la
+ * pantalla que se visita (menos datos en móviles de gama media).
  */
+const perezoso = (importador, nombre) => ({
+  lazy: async () => ({ Component: (await importador())[nombre] }),
+})
+
+const soloInvitados = (
+  <SoloInvitados>
+    <Outlet />
+  </SoloInvitados>
+)
+
+const protegido = (roles, props = {}) => (
+  <ProtectedRoute roles={roles} {...props}>
+    <AppLayout />
+  </ProtectedRoute>
+)
+
 export const router = createBrowserRouter([
-  // Público (solo invitados)
   {
-    path: '/',
-    element: (
-      <SoloInvitados>
-        <Landing />
-      </SoloInvitados>
-    ),
-  },
-  {
-    path: '/registro',
-    element: (
-      <SoloInvitados>
-        <Registro />
-      </SoloInvitados>
-    ),
-  },
-  {
-    path: '/login',
-    element: (
-      <SoloInvitados>
-        <Login />
-      </SoloInvitados>
-    ),
-  },
-  { path: '/confirmar-correo', element: <ConfirmarCorreo /> },
-  { path: '/terminos', element: <Placeholder titulo="Términos de uso" fase="Fase 7" /> },
-  { path: '/privacidad', element: <Placeholder titulo="Política de privacidad" fase="Fase 7" /> },
-
-  // Punto de entrada tras autenticarse
-  { path: '/entrar', element: <RedirigirPorRol /> },
-  {
-    path: '/completar-registro',
-    element: <Placeholder titulo="Completa tu registro" fase="Fase 1" />,
-  },
-
-  // Onboarding (requiere sesión, pero no exige onboarding previo)
-  {
-    path: '/onboarding',
-    element: (
-      <ProtectedRoute requiereOnboarding={false}>
-        <Onboarding />
-      </ProtectedRoute>
-    ),
-  },
-
-  // Área joven
-  {
-    path: '/joven',
-    element: (
-      <ProtectedRoute roles={[ROLES.JOVEN]}>
-        <AppLayout />
-      </ProtectedRoute>
-    ),
+    hydrateFallbackElement: <Cargando />,
     children: [
-      { index: true, element: <JovenHome /> },
-      { path: 'perfil', element: <PerfilEditar /> },
-      { path: 'portafolio', element: <Portafolio /> },
-      { path: 'popups', element: <PopupsJoven /> },
-      { path: 'popups/:popupId', element: <PopupDetalleJoven /> },
+      // Público (solo invitados)
+      {
+        element: soloInvitados,
+        children: [
+          { path: '/', ...perezoso(() => import('../pages/Landing.jsx'), 'Landing') },
+          { path: '/registro', ...perezoso(() => import('../pages/Registro.jsx'), 'Registro') },
+          { path: '/login', ...perezoso(() => import('../pages/Login.jsx'), 'Login') },
+        ],
+      },
+      {
+        path: '/confirmar-correo',
+        ...perezoso(() => import('../pages/ConfirmarCorreo.jsx'), 'ConfirmarCorreo'),
+      },
+      { path: '/terminos', ...perezoso(() => import('../pages/Legal.jsx'), 'Terminos') },
+      { path: '/privacidad', ...perezoso(() => import('../pages/Legal.jsx'), 'Privacidad') },
+
+      // Punto de entrada tras autenticarse
+      { path: '/entrar', element: <RedirigirPorRol /> },
+      {
+        path: '/completar-registro',
+        ...perezoso(() => import('../pages/CompletarRegistro.jsx'), 'CompletarRegistro'),
+      },
+
+      // Onboarding (requiere sesión, pero no exige onboarding previo)
+      {
+        path: '/onboarding',
+        element: (
+          <ProtectedRoute requiereOnboarding={false}>
+            <Outlet />
+          </ProtectedRoute>
+        ),
+        children: [{ index: true, ...perezoso(() => import('../pages/Onboarding.jsx'), 'Onboarding') }],
+      },
+
+      // Área joven
+      {
+        path: '/joven',
+        element: protegido([ROLES.JOVEN]),
+        children: [
+          { index: true, ...perezoso(() => import('../pages/joven/JovenHome.jsx'), 'JovenHome') },
+          { path: 'perfil', ...perezoso(() => import('../pages/joven/PerfilEditar.jsx'), 'PerfilEditar') },
+          { path: 'portafolio', ...perezoso(() => import('../pages/joven/Portafolio.jsx'), 'Portafolio') },
+          { path: 'popups', ...perezoso(() => import('../pages/joven/PopupsJoven.jsx'), 'PopupsJoven') },
+          {
+            path: 'popups/:popupId',
+            ...perezoso(() => import('../pages/joven/PopupDetalleJoven.jsx'), 'PopupDetalleJoven'),
+          },
+          { path: 'recursos', ...perezoso(() => import('../pages/joven/Recursos.jsx'), 'Recursos') },
+        ],
+      },
+
+      // Área empresario
+      {
+        path: '/empresario',
+        element: protegido([ROLES.EMPRESARIO]),
+        children: [
+          { index: true, ...perezoso(() => import('../pages/empresario/Directorio.jsx'), 'Directorio') },
+          {
+            path: 'talento/:usuarioId',
+            ...perezoso(() => import('../pages/empresario/PerfilTalento.jsx'), 'PerfilTalento'),
+          },
+          { path: 'popups', ...perezoso(() => import('../pages/empresario/MisPopups.jsx'), 'MisPopups') },
+          { path: 'popups/nuevo', ...perezoso(() => import('../pages/empresario/NuevoPopup.jsx'), 'NuevoPopup') },
+          {
+            path: 'popups/:popupId',
+            ...perezoso(() => import('../pages/empresario/PopupDetalle.jsx'), 'PopupDetalle'),
+          },
+          { path: 'contratados', ...perezoso(() => import('../pages/empresario/Contratados.jsx'), 'Contratados') },
+        ],
+      },
+
+      // Área líder de área (también accesible para el admin)
+      {
+        path: '/lider',
+        element: protegido([ROLES.LIDER, ROLES.ADMIN]),
+        children: [
+          { index: true, ...perezoso(() => import('../pages/lider/Aprobaciones.jsx'), 'Aprobaciones') },
+          {
+            path: 'perfil/:usuarioId',
+            ...perezoso(() => import('../pages/lider/RevisarPerfil.jsx'), 'RevisarPerfil'),
+          },
+          { path: 'popup/:popupId', ...perezoso(() => import('../pages/lider/RevisarPopup.jsx'), 'RevisarPopup') },
+          { path: 'seguimiento', ...perezoso(() => import('../pages/lider/Seguimiento.jsx'), 'Seguimiento') },
+          { path: 'recursos', ...perezoso(() => import('../pages/lider/Recursos.jsx'), 'RecursosGestion') },
+          { path: 'auditoria', ...perezoso(() => import('../pages/lider/Auditoria.jsx'), 'Auditoria') },
+        ],
+      },
+
+      // Área admin
+      {
+        path: '/admin',
+        element: protegido([ROLES.ADMIN]),
+        children: [
+          { index: true, ...perezoso(() => import('../pages/admin/Dashboard.jsx'), 'Dashboard') },
+          { path: 'usuarios', ...perezoso(() => import('../pages/admin/Usuarios.jsx'), 'Usuarios') },
+        ],
+      },
+
+      { path: '*', ...perezoso(() => import('../pages/NoEncontrada.jsx'), 'NoEncontrada') },
     ],
   },
-
-  // Área empresario
-  {
-    path: '/empresario',
-    element: (
-      <ProtectedRoute roles={[ROLES.EMPRESARIO]}>
-        <AppLayout />
-      </ProtectedRoute>
-    ),
-    children: [
-      { index: true, element: <Directorio /> },
-      { path: 'talento/:usuarioId', element: <PerfilTalento /> },
-      { path: 'popups', element: <MisPopups /> },
-      { path: 'popups/nuevo', element: <NuevoPopup /> },
-      { path: 'popups/:popupId', element: <PopupDetalle /> },
-    ],
-  },
-
-  // Área líder de área
-  {
-    path: '/lider',
-    element: (
-      <ProtectedRoute roles={[ROLES.LIDER, ROLES.ADMIN]}>
-        <AppLayout />
-      </ProtectedRoute>
-    ),
-    children: [
-      { index: true, element: <Aprobaciones /> },
-      { path: 'perfil/:usuarioId', element: <RevisarPerfil /> },
-      { path: 'popup/:popupId', element: <RevisarPopup /> },
-      { path: 'auditoria', element: <Auditoria /> },
-    ],
-  },
-
-  // Área admin
-  {
-    path: '/admin',
-    element: (
-      <ProtectedRoute roles={[ROLES.ADMIN]}>
-        <AppLayout />
-      </ProtectedRoute>
-    ),
-    children: [
-      { index: true, element: <Placeholder titulo="Dashboard KPI · Admin" fase="Fase 6" /> },
-    ],
-  },
-
-  { path: '*', element: <Placeholder titulo="Página no encontrada" fase="404" /> },
 ])

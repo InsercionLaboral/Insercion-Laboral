@@ -33,6 +33,17 @@ export function AuthProvider({ children }) {
     if (error) {
       console.error('Error cargando la fila de usuario:', error.message)
       setUsuario(null)
+    } else if (data && data.estado === 'inactivo') {
+      // Cuenta desactivada por el equipo: se cierra la sesión y el login lo explica.
+      try {
+        sessionStorage.setItem('cuenta_inactiva', '1')
+      } catch {
+        /* sin almacenamiento: se ignora */
+      }
+      // No se espera aquí: cerrar sesión dentro del evento de autenticación de
+      // Supabase puede quedarse bloqueado. Se programa justo después.
+      setTimeout(() => supabase.auth.signOut(), 0)
+      setUsuario(null)
     } else {
       setUsuario(data)
     }

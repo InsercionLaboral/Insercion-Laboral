@@ -395,6 +395,47 @@ export type Database = {
           },
         ]
       }
+      proyectos_joven: {
+        Row: {
+          anio: number | null
+          created_at: string
+          descripcion: string | null
+          enlace: string | null
+          id: string
+          joven_id: string
+          orden: number
+          titulo: string
+        }
+        Insert: {
+          anio?: number | null
+          created_at?: string
+          descripcion?: string | null
+          enlace?: string | null
+          id?: string
+          joven_id: string
+          orden?: number
+          titulo: string
+        }
+        Update: {
+          anio?: number | null
+          created_at?: string
+          descripcion?: string | null
+          enlace?: string | null
+          id?: string
+          joven_id?: string
+          orden?: number
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proyectos_joven_joven_id_fkey"
+            columns: ["joven_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles_joven"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recursos: {
         Row: {
           creado_por: string | null

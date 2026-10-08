@@ -75,7 +75,7 @@
 **Objeto:** estos términos regulan el uso de la plataforma **Inserción Laboral**, desarrollada por el Comité de Cafeteros de Caldas para conectar jóvenes egresados de La Universidad en el Campo con empresarios de la región mediante un modelo de contratación por habilidades.
 
 **Quiénes pueden registrarse:**
-- Jóvenes egresados de La Universidad en el Campo, entre 16 y 28 años (los de 16 y 17 años requieren autorización de acudiente).
+- Jóvenes egresados de La Universidad en el Campo, entre 16 y 35 años (los de 16 y 17 años requieren autorización de acudiente).
 - Empresarios y empresas interesadas en contratar talento por habilidades.
 
 **Uso adecuado de la plataforma:**

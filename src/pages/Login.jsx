@@ -14,7 +14,17 @@ export function Login() {
   const [verPass, setVerPass] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [errores, setErrores] = useState({})
-  const [errorGeneral, setErrorGeneral] = useState(null)
+  const [errorGeneral, setErrorGeneral] = useState(() => {
+    try {
+      if (sessionStorage.getItem('cuenta_inactiva')) {
+        sessionStorage.removeItem('cuenta_inactiva')
+        return 'Tu cuenta está desactivada. Comunícate con el equipo de Inserción Laboral.'
+      }
+    } catch {
+      /* sin almacenamiento: se ignora */
+    }
+    return null
+  })
 
   async function enviar(e) {
     e.preventDefault()

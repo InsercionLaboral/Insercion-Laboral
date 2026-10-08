@@ -52,3 +52,39 @@ body {
 ::placeholder {
   color: #a7a995;
 }
+
+/* ============================================================================
+   Impresión / "Guardar como PDF" (reporte de indicadores)
+   ============================================================================ */
+.solo-impresion {
+  display: none;
+}
+
+@media print {
+  .no-imprimir {
+    display: none !important;
+  }
+  .solo-impresion {
+    display: block !important;
+  }
+  body {
+    background: #fff !important;
+    background-image: none !important;
+  }
+  main {
+    padding-bottom: 0 !important;
+  }
+  .bg-fondo {
+    background: #fff !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .lg\:hidden {
+    display: none !important;
+  }
+  .lg\:block {
+    display: block !important;
+  }
+}

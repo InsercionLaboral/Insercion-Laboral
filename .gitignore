@@ -30,3 +30,6 @@ Thumbs.db
 
 # Vercel
 .vercel
+
+# Insumos con datos personales de pruebas (no subir)
+docs/ensayos*.docx
