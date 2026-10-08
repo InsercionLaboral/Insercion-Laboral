@@ -2,7 +2,7 @@
 
 **Comité de Cafeteros de Caldas — Área de Educación**
 
-⚠️ **Nota importante:** Este documento fue elaborado como punto de partida basado en la Ley 1581 de 2012 (Habeas Data) y el Decreto 1377 de 2013 de Colombia. No reemplaza la revisión de un abogado. Antes de publicar estos textos en la plataforma real, deben ser validados por el área jurídica del Comité de Cafeteros de Caldas, especialmente por involucrar datos de menores de edad.
+✅ **Estado:** textos **aprobados por el área jurídica** del Comité de Cafeteros de Caldas (octubre de 2026), basados en la Ley 1581 de 2012 (Habeas Data) y el Decreto 1377 de 2013. Correo oficial de contacto: **edurural.giraldo.lucelly@gmail.com**. Se publican en la plataforma en `/terminos` y `/privacidad` (`src/pages/Legal.jsx`); si se modifican, deben volver a revisión jurídica.
 
 ---
 
@@ -18,7 +18,7 @@
 > - Elaborar reportes estadísticos e indicadores institucionales (sin identificar a personas de forma individual) para la Subcomisión de Concertación de Políticas Laborales y Salariales y otros aliados institucionales.
 > - Contactarme por los medios registrados (correo electrónico, WhatsApp) para notificaciones relacionadas con el uso de la plataforma.
 >
-> Entiendo que puedo conocer, actualizar, rectificar o solicitar la eliminación de mis datos personales, así como revocar esta autorización, en cualquier momento, escribiendo a **[correo de contacto del área de Inserción Laboral]**.
+> Entiendo que puedo conocer, actualizar, rectificar o solicitar la eliminación de mis datos personales, así como revocar esta autorización, en cualquier momento, escribiendo a **edurural.giraldo.lucelly@gmail.com**.
 
 ☐ Acepto la autorización de tratamiento de datos personales.
 
@@ -31,7 +31,7 @@
 >
 > Declaro que he sido informado(a) sobre el propósito de la plataforma (conectar jóvenes rurales egresados de La Universidad en el Campo con oportunidades de contratación por habilidades) y autorizo su participación en los módulos de perfil, postulación a oportunidades laborales y recursos educativos.
 >
-> Entiendo que puedo revocar esta autorización en cualquier momento escribiendo a **[correo de contacto del área de Inserción Laboral]**.
+> Entiendo que puedo revocar esta autorización en cualquier momento escribiendo a **edurural.giraldo.lucelly@gmail.com**.
 
 ☐ Autorizo como acudiente/representante legal.
 
@@ -58,7 +58,7 @@
 6. Elaborar estadísticas e indicadores agregados (sin identificación individual) para reportes institucionales.
 7. Enviar notificaciones relacionadas con el uso de la plataforma.
 
-**Derechos del titular (Ley 1581 de 2012):** todo usuario puede conocer, actualizar, rectificar y solicitar la eliminación de sus datos, así como revocar la autorización otorgada, mediante solicitud escrita a **[correo de contacto]**.
+**Derechos del titular (Ley 1581 de 2012):** todo usuario puede conocer, actualizar, rectificar y solicitar la eliminación de sus datos, así como revocar la autorización otorgada, mediante solicitud escrita a **edurural.giraldo.lucelly@gmail.com**.
 
 **Menores de edad:** el registro de usuarios entre 16 y 17 años requiere la autorización adicional de su acudiente o representante legal, conforme a la sección 2 de este documento.
 
@@ -93,13 +93,13 @@
 
 **Modificaciones:** estos términos pueden actualizarse; el uso continuado de la plataforma después de una actualización implica la aceptación de los cambios.
 
-**Contacto:** para dudas, solicitudes o reportes relacionados con estos términos, escribir a **[correo de contacto del área de Inserción Laboral]**.
+**Contacto:** para dudas, solicitudes o reportes relacionados con estos términos, escribir a **edurural.giraldo.lucelly@gmail.com**.
 
 ---
 
-## Pendientes para completar antes de publicar
+## Estado de los pendientes (octubre de 2026)
 
-- [ ] Definir el correo de contacto oficial del área de Inserción Laboral (aparece como placeholder en varios lugares).
-- [ ] Validación jurídica formal, en especial el mecanismo de autorización del acudiente (sección 2).
-- [ ] Confirmar con el área jurídica si se requiere un consentimiento adicional para la publicación de fotos en el directorio público.
+- [x] Correo de contacto oficial del área de Inserción Laboral: edurural.giraldo.lucelly@gmail.com.
+- [x] Validación jurídica formal, incluido el mecanismo de autorización del acudiente (sección 2).
+- [x] Revisión jurídica del consentimiento para la publicación de fotos en el directorio.
 - [ ] Traducir la casilla de autorización a un lenguaje aún más sencillo si se detecta baja comprensión lectora en las pruebas de usuario con jóvenes.

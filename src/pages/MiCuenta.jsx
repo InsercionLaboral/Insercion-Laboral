@@ -8,6 +8,7 @@ import { ROLES } from '../constants/roles.js'
 import { actualizarMiEmpresa, actualizarMisDatos, cambiarContrasena } from '../lib/cuenta.js'
 import { getMiEmpresa } from '../lib/popups.js'
 import { ETIQUETA_ROL } from '../lib/usuarios.js'
+import { CORREO_CONTACTO } from '../config.js'
 
 /** Mi cuenta: datos personales, datos de la empresa (empresario) y contraseña. */
 export function MiCuenta() {
@@ -137,7 +138,11 @@ export function MiCuenta() {
       </Seccion>
 
       <p className="mt-2 font-body text-xs text-tenue">
-        ¿Quieres borrar tu cuenta o tus datos? Escríbele al equipo de Inserción Laboral del Comité de Cafeteros de Caldas.
+        ¿Quieres borrar tu cuenta o tus datos? Escríbele al equipo de Inserción Laboral a{' '}
+        <a href={`mailto:${CORREO_CONTACTO}`} className="font-bold text-empresario underline">
+          {CORREO_CONTACTO}
+        </a>
+        .
       </p>
     </div>
   )
