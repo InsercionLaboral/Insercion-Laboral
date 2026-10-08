@@ -5,7 +5,7 @@ mediante contratación por habilidades ("pop-ups"), recursos de formación y seg
 de resultados.
 
 - **Stack:** React + Vite · Tailwind CSS · Supabase (Postgres + Auth + RLS + Storage) · Vercel.
-- **Planeación:** ver [planeacion-plataforma-insercion-laboral.md](planeacion-plataforma-insercion-laboral.md) (alcance funcional) y [fases-implementacion-insercion-laboral.md](fases-implementacion-insercion-laboral.md) (hoja de ruta por fases). Estado: **fases 0 a 6 implementadas y migraciones aplicadas**; textos legales aprobados y correo oficial de contacto `edurural.giraldo.lucelly@gmail.com`. Para el lanzamiento faltan el SMTP propio en Supabase y las pruebas con jóvenes.
+- **Planeación:** ver [planeacion-plataforma-insercion-laboral.md](planeacion-plataforma-insercion-laboral.md) (alcance funcional) y [fases-implementacion-insercion-laboral.md](fases-implementacion-insercion-laboral.md) (hoja de ruta por fases). Estado: **fases 0 a 6 implementadas y migraciones aplicadas**; textos legales aprobados y correo oficial de contacto `edurural.giraldo.lucelly@gmail.com`. Para el lanzamiento faltan el SMTP propio en Supabase, fijar el mínimo de contraseña y las pruebas con jóvenes.
 
 ## Requisitos
 
